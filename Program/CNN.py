@@ -62,6 +62,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
 
     # Pooling layer - downsamples by 2X.
     h_pool1 = max_pool_2x2(h_conv1)
+    print(h_pool1.shape)
 
     # Second convolutional layer -- maps 32 feature maps to 64.
     W_conv2 = weight_variable([5, 5, 32, 64])
@@ -70,13 +71,16 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
 
     # Second pooling layer.
     h_pool2 = max_pool_2x2(h_conv2)
+    print(h_pool2.shape)
 
     # Fully connected layer 1 -- after 2 round of downsampling, our 28x28 image
     # is down to 7x7x64 feature maps -- maps this to 1024 features.
-    W_fc1 = weight_variable([img_height*img_width*4, 1024])
+
+    # 40*30 -> 20*15 -> 10*8 just check sizes after pooling. Learn how to calculate the size sometime
+    W_fc1 = weight_variable([10*8*64, 1024])
     b_fc1 = bias_variable([1024])
 
-    h_pool2_flat = tf.reshape(h_pool2, [-1, img_height*img_width*4])
+    h_pool2_flat = tf.reshape(h_pool2, [-1, 10*8*64])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
 
     # Dropout - controls the complexity of the model, prevents co-adaptation of
@@ -113,11 +117,28 @@ def bias_variable(shape):
     initial = tf.constant(0.1, shape=shape)
     return tf.Variable(initial)
 
+def save_model(saver, sess, file_name='model.ckpt'):
+    # Prepare for saving the model after training
+    current_dir = os.path.dirname(__file__)
+    file_path = '../Models/{}'.format(file_name)
+    file_rel_path = os.path.join(current_dir, file_path)
+
+    save_path = saver.save(sess, file_rel_path)
+    print("Model saved in file: %s" % save_path)
+
+def get_model_path(file_name='model.ckpt'):
+    saver = tf.train.Saver()
+
+    current_dir = os.path.dirname(__file__)
+    file_path = '../Models/{}'.format(file_name)
+    file_rel_path = os.path.join(current_dir, file_path)
+
+    return file_rel_path
 
 def main(_):
 
     #import data
-    all_images = get_all_resized_images(dim1=200,dim2=150)
+    all_images = get_all_resized_images(dim1=40,dim2=30)
     all_ratings = get_all_ratings()
     one_hot_ratings = one_hot_encode(all_ratings, n_classes=50)
 
@@ -149,35 +170,57 @@ def main(_):
     train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
     correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    predict_operation = tf.argmax(y_conv, axis=1)
+
+    # For saving and restoring the model
+    saver = tf.train.Saver()
+
 
     batch_size = 10
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        for i in range(200):
-
-            train_accuracy = accuracy.eval(feed_dict={
-                    x: training_X, 
-                    y_: training_Y, 
-                    keep_prob: 1.0
-                })
-
-            print('step %d, training accuracy %g' % (i, train_accuracy))
-
+        true_targets = np.argmax(test_Y, axis=1)
+        done = True
+        for i in range(40):
+            if done == True:
+                break
             for start, end in zip(range(0, len(training_X), batch_size), range(batch_size, len(training_X) + batch_size, batch_size)):
-
-                print('batch %d - %d, training accuracy %g' % (start, end))
-
                 train_step.run(feed_dict={
                     x: training_X[start:end], 
                     y_: training_Y[start:end], 
                     keep_prob: 0.5
                 })
+                train_accuracy = accuracy.eval(feed_dict={
+                    x: training_X, 
+                    y_: training_Y, 
+                    keep_prob: 1.0
+                })
+                print('step %d batch %d - %d, training accuracy %g' % (i, start, end, train_accuracy))
+                if train_accuracy > 0.999:
+                    save_model(saver, sess)
+                    done = True
+                    accuracy_score = accuracy.eval(feed_dict={
+                        x: test_X, 
+                        y_: test_Y, 
+                        keep_prob: 1.0
+                    })
+                    print("Accuracy on test set is: %d" % accuracy_score)
+                    break
 
-        print('test accuracy %g' % accuracy.eval(feed_dict={
-            x: test_X, 
-            y_: test_Y, 
-            keep_prob: 1.0
-        }))
+        saver.restore(sess, get_model_path())
+
+        pred_targets = np.array([])
+        for start, end in zip(range(0, len(training_X), batch_size), range(batch_size, len(training_X) + batch_size, batch_size)):
+            batch_pred_targets = sess.run(predict_operation, feed_dict={
+                x: test_X,
+                keep_prob: 1.0
+            })
+            print(np.hstack((pred_targets, np.array(batch_pred_targets))))
+            pred_targets = np.apply_along_axis(int, 0, np.hstack((pred_targets, np.array(batch_pred_targets))))
+        accuracy_score = np.mean(true_targets == pred_targets)
+        for i in range(len(true_targets)):
+            print(true_targets[i], " - ", pred_targets[i])
+        print("Accuracy on test set is: %d" % accuracy_score)
 
 if __name__ == '__main__':
 #   parser = argparse.ArgumentParser()
