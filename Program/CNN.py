@@ -149,7 +149,7 @@ def get_model_path(file_name='model.ckpt'):
 def main(_):
 
     #import data
-    all_images = get_all_resized_images(dim1=64,dim2=64)
+    all_images = get_all_resized_images(dim1=32,dim2=32)
     all_ratings = get_all_ratings(factor=2)
     one_hot_ratings = one_hot_encode(all_ratings, n_classes=10)
 
