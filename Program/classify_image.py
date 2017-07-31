@@ -3,14 +3,16 @@ import os
 import cv2 as opencv
 import tensorflow as tf
 from CNN import *
+from HAAR import *
 
 def classify_image_to_beauty_scale(file_name="test.jpg", dim1=32, dim2=32):
 
-    img = get_image(file_name=file_name)
+    # img = get_image(file_name=file_name)
+    img = haar_cascade(file_name=file_name)
     resized_image = resize_image(img, dim1, dim2)
 
     x = tf.placeholder(tf.float32, [None, resized_image.shape[0], resized_image.shape[1], resized_image.shape[2]])
-    y_conv, keep_prob = cnn_model(x, resized_image.shape[0], resized_image.shape[1], resized_image.shape[2], 10)
+    y_conv, keep_prob = cnn_model(x, resized_image.shape[0], resized_image.shape[1], resized_image.shape[2], 5)
     predict_operation = tf.argmax(y_conv, axis=1)
 
     saver = tf.train.Saver()
@@ -49,4 +51,4 @@ def resize_image(img, dim1, dim2):
     return resized_img
 
 if __name__ == '__main__':
-    classify_image_to_beauty_scale(file_name="asian.jpg", dim1=32, dim2=32)
+    classify_image_to_beauty_scale(file_name="eirik.jpg", dim1=32, dim2=32)

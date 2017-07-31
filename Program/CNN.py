@@ -146,12 +146,26 @@ def get_model_path(file_name='model.ckpt'):
 
     return file_rel_path
 
+def calc_and_print_accuracy(pred_targets, true_targets):
+    tot_correct = 0
+    for i in range(len(pred_targets)):
+        if true_targets[i] == pred_targets[i]:
+            print("%d -> %d - %s -> %s" % (true_targets[i], pred_targets[i], type(true_targets[i]), type(pred_targets[i])))
+            tot_correct += 1
+    test_accuracy = tot_correct/len(true_targets)
+
+    print("\n")
+    print("Step %d -> TEST Accuracy: %g" % (i, test_accuracy))
+
 def main(_):
 
     #import data
-    all_images = get_all_resized_images(dim1=32,dim2=32)
-    all_ratings = get_all_ratings(factor=2)
+    all_images = get_all_resized_images(dim1=32,dim2=32, haar=False)
+    print("Dims e0: ", all_images[0].shape)
+    all_ratings = get_all_ratings(factor=10)
+    print("Rating e0: ", all_ratings[0])
     one_hot_ratings = one_hot_encode(all_ratings, n_classes=10)
+    print("One Hot Rating e0: ", one_hot_ratings[0])
 
     # 80% training
     training_X = all_images[:400]
@@ -187,8 +201,8 @@ def main(_):
     # For saving and restoring the model
     saver = tf.train.Saver()
 
-
     batch_size = 50
+    print("\n")
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         true_targets = np.argmax(test_Y, axis=1)
@@ -211,39 +225,59 @@ def main(_):
             tot_correct = 0
             for t in range(len(pred_targets)):
                 if true_targets[t] == pred_targets[t]:
-                    # print("%d -> %d" % (true_targets[t], pred_targets[t]))
+                    print("%d -> %d - %s -> %s" % (true_targets[t], pred_targets[t], type(true_targets[t]), type(pred_targets[t])))
                     tot_correct += 1
             test_accuracy = tot_correct/len(true_targets)
 
             print("\n")
             print("Step %d -> TEST Accuracy: %g" % (i, test_accuracy))
 
+            pred_targets = np.array([])
+            true_targets = np.argmax(training_Y, axis=1)
             for start, end in zip(range(0, len(training_X), batch_size), range(batch_size, len(training_X) + batch_size, batch_size)):
-
                 train_step.run(feed_dict={
                     x: training_X[start:end], 
                     y_: training_Y[start:end], 
                     keep_prob: 0.5
                 })
 
-                train_accuracy = accuracy.eval(feed_dict={
-                    x: training_X[start:end], 
-                    y_: training_Y[start:end], 
+                batch_pred_targets = sess.run(predict_operation, feed_dict={
+                    x: training_X[start:end],
                     keep_prob: 1.0
                 })
+                pred_targets = np.hstack((pred_targets, np.array(batch_pred_targets)))
+                
+                batch_pred_targets = batch_pred_targets.astype(int)
+                tot_correct = 0
+                batch_true_targets = np.argmax(training_Y[start:end], axis=1)
+                for t in range(len(batch_pred_targets)):
+                    if true_targets[t] == pred_targets[t]:
+                        tot_correct += 1
+                batch_accuracy = tot_correct/len(pred_targets)
+                
+                print('\tBatch %d - %d -> TRAINING accuracy %g' % (start, end, batch_accuracy))
 
-                print('\tBatch %d - %d -> TRAINING accuracy %g' % (start, end, train_accuracy))
+            
+            pred_targets = pred_targets.astype(int)
+            tot_correct = 0
+            for t in range(len(pred_targets)):
+                if true_targets[t] == pred_targets[t]:
+                    # print("%d -> %d" % (true_targets[t], pred_targets[t]))
+                    tot_correct += 1
+            test_accuracy = tot_correct/len(true_targets)
 
-                if train_accuracy > 0.999:
-                    done = True
-                    accuracy_score = accuracy.eval(feed_dict={
-                        x: test_X, 
-                        y_: test_Y, 
-                        keep_prob: 1.0
-                    })
-                    print("Accuracy on test set is: %d" % accuracy_score)
-                    save_model(saver, sess)
-                    break
+            print('\tAvg Batch -> TRAINING accuracy %g' % (test_accuracy))
+
+            if test_accuracy > 0.999:
+                done = True
+                accuracy_score = accuracy.eval(feed_dict={
+                    x: test_X, 
+                    y_: test_Y, 
+                    keep_prob: 1.0
+                })
+                print("Accuracy on test set is: %d" % accuracy_score)
+                save_model(saver, sess)
+                break
 
         saver.restore(sess, get_model_path())
 
