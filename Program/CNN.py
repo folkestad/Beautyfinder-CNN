@@ -30,6 +30,7 @@ import argparse
 import sys
 from image_handler import *
 from rating_handler import *
+from performance_measures import *
 
 from tensorflow.examples.tutorials.mnist import input_data
 
@@ -58,8 +59,8 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
 
     # First convolutional layer - maps 3 channel RGB image to 96 feature maps of size 7x7.
     # W_conv1 = weight_variable([5, 5, 1, 32])
-    W_conv1 = weight_variable([7, 7, 3, 96])
-    b_conv1 = bias_variable([96])
+    W_conv1 = weight_variable([7, 7, 3, 128])
+    b_conv1 = bias_variable([128])
     h_conv1 = tf.nn.relu(conv2d(X, W_conv1) + b_conv1)
 
     # Pooling layer - downsamples by 2X.
@@ -67,7 +68,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     print("Size after first downsampling: ", h_pool1.shape)
 
     # Second convolutional layer -- maps 96 feature maps to 256 of size 5x5.
-    W_conv2 = weight_variable([5, 5, 96, 256])
+    W_conv2 = weight_variable([5, 5, 128, 256])
     b_conv2 = bias_variable([256])
     h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
 
@@ -282,6 +283,7 @@ def main(_):
 
             training_accuracy = calc_accuracy(pred_targets, true_targets)
             print('\tAvg Batch -> TRAINING accuracy %g' % (training_accuracy))
+            # print(classification_report(pred_targets, true_targets))
 
             if training_accuracy > accuracy_treshold:
                 print("The average accuracy exceeded the accuracy threshold {}".format(accuracy_treshold))

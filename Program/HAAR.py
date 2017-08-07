@@ -16,6 +16,7 @@ def haar_cascade(dir_name='Renamed_CFD', file_name='test.jpg'):
     file_rel_path = os.path.join(current_dir, file_path)
     img = cv2.imread(file_rel_path)
 
+    print(img.shape)
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     # clahe = cv2.createCLAHE(clipLimit=3., tileGridSize=(8,8))
     # gray = clahe.apply(gray)
