@@ -4,23 +4,35 @@ import math
 import numpy as np
 
 
-def get_all_ratings(factor=10):
+# def get_all_ratings(factor=10):
     
+#     current_dir = os.path.dirname(__file__)
+#     file_name = 'attractiveness_rating.csv'
+#     file_path = '../Data/{}'.format(file_name)
+#     file_rel_path = os.path.join(current_dir, file_path)
+#     rating_file = open(file_rel_path, 'r')
+
+#     all_ratings = [] 
+#     for i,line in enumerate(rating_file):
+#         if i != 0:
+#             all_ratings.append(float(line.replace('"', '').split(',')[1]))
+#     normalized_ratings = normalize(all_ratings)
+#     scaled_ratings = [ int(math.floor((factor*r)+0.5)) for r in normalized_ratings ]
+#     return scaled_ratings
+
+def get_all_ratings():
     current_dir = os.path.dirname(__file__)
-    file_name = 'attractiveness_rating.csv'
+    file_name = 'renamed_cfd.csv'
     file_path = '../Data/{}'.format(file_name)
     file_rel_path = os.path.join(current_dir, file_path)
     rating_file = open(file_rel_path, 'r')
 
     all_ratings = [] 
     for i,line in enumerate(rating_file):
-        if i != 0:
-            all_ratings.append(float(line.replace('"', '').split(',')[1]))
-    normalized_ratings = normalize(all_ratings)
-    scaled_ratings = [ int(math.floor((factor*r)+0.5)) for r in normalized_ratings ]
-    return scaled_ratings
+        all_ratings.append(int(line.replace("\r\n", "")))
+    return all_ratings
 
-def one_hot_encode(labels, n_classes=50):
+def one_hot_encode(labels, n_classes=10):
     array = np.array([ int(l) for l in labels ])
     one_hot = np.zeros((array.size, n_classes+1))
     one_hot[np.arange(array.size), array] = 1

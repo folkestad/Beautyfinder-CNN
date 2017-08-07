@@ -35,6 +35,7 @@ from tensorflow.examples.tutorials.mnist import input_data
 
 import tensorflow as tf
 import numpy as np
+import random
 
 FLAGS = None
 
@@ -83,15 +84,25 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     h_pool3 = max_pool_2x2(h_conv3)
     print("Size after third downsampling: ", h_pool3.shape)
 
+    # Fourth conv layer
+    W_conv4 = weight_variable([3, 3, 384, 512])
+    b_conv4 = bias_variable([512])
+    h_conv4 = tf.nn.relu(conv2d(h_pool3, W_conv4) + b_conv4)
+
+    # Fourth pooling layer
+    h_pool4 = max_pool_2x2(h_conv4)
+    print("Size after third downsampling: ", h_pool4.shape)
+
+    last_pool = h_pool4
     # Fully connected layer 1 -- after 2 round of downsampling, our 28x28 image
     # is down to 7x7x64 feature maps -- maps this to 1024 features.
 
     # 40*30 -> 20*15 -> 10*8 just check sizes after pooling. Learn how to calculate the size sometime.
-    W_fc1 = weight_variable([int(h_pool3.get_shape()[1])*int(h_pool3.get_shape()[2])*384, 1024])
+    W_fc1 = weight_variable([int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*512, 1024])
     b_fc1 = bias_variable([1024])
 
-    h_pool3_flat = tf.reshape(h_pool3, [-1, int(h_pool3.get_shape()[1])*int(h_pool3.get_shape()[2])*384])
-    h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
+    last_pool_flat = tf.reshape(last_pool, [-1, int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*512])
+    h_fc1 = tf.nn.relu(tf.matmul(last_pool_flat, W_fc1) + b_fc1)
 
     # Dropout - controls the complexity of the model, prevents co-adaptation of
     # features.
@@ -146,34 +157,53 @@ def get_model_path(file_name='model.ckpt'):
 
     return file_rel_path
 
-def calc_and_print_accuracy(pred_targets, true_targets):
+def calc_accuracy(pred_targets, true_targets):
+    pred_targets = pred_targets.astype(int)
     tot_correct = 0
     for i in range(len(pred_targets)):
         if true_targets[i] == pred_targets[i]:
-            print("%d -> %d - %s -> %s" % (true_targets[i], pred_targets[i], type(true_targets[i]), type(pred_targets[i])))
+            # print("%d -> %d - %s -> %s" % (true_targets[i], pred_targets[i], type(true_targets[i]), type(pred_targets[i])))
             tot_correct += 1
     test_accuracy = tot_correct/len(true_targets)
+    return test_accuracy
 
-    print("\n")
-    print("Step %d -> TEST Accuracy: %g" % (i, test_accuracy))
+def split_to_training_and_test(data_set=[], label_set=[], n_samples=0):
+    index_list = []
+    l = len(data_set) - 1
+    while len(index_list) < n_samples:
+        # print("In")
+        index = random.randint(0, l)
+        if index not in index_list:
+            index_list.append(index)
+
+    test_X = [ data_set[i] for i in range(len(data_set)) if i in index_list ]
+    test_Y = [ label_set[i] for i in range(len(label_set)) if i in index_list ]
+
+    training_X = [ data_set[i] for i in range(len(data_set)) if i not in index_list ]
+    training_Y = [ label_set[i] for i in range(len(label_set)) if i not in index_list ]
+    
+    print("Length of sets (training_X, training_Y, test_X, test_Y):", len(training_X), len(training_Y), len(test_X), len(test_Y))
+    return training_X, training_Y, test_X, test_Y
 
 def main(_):
 
     #import data
-    all_images = get_all_resized_images(dim1=32,dim2=32, haar=False)
-    print("Dims e0: ", all_images[0].shape)
-    all_ratings = get_all_ratings(factor=10)
+    all_images = get_all_resized_images(dim1=32,dim2=32, haar=False, dir_name="HAAR_CFD")
+    print("No. images", len(all_images), "-> Dims e0: ", all_images[0].shape)
+    all_ratings = get_all_ratings()
     print("Rating e0: ", all_ratings[0])
     one_hot_ratings = one_hot_encode(all_ratings, n_classes=10)
     print("One Hot Rating e0: ", one_hot_ratings[0])
+    size_training_set = int(math.floor(len(all_images)*0.8))
+    size_test_set = len(all_images)-size_training_set
+    print("Size training set -> {}, Size test set -> {}".format(size_training_set, size_test_set))
 
     # 80% training
-    training_X = all_images[:400]
-    test_X = all_images[400:]
-
-    # 20% testing
-    training_Y = one_hot_ratings[:400]
-    test_Y = one_hot_ratings[400:]
+    training_X, training_Y, test_X, test_Y = split_to_training_and_test(
+        data_set=all_images, 
+        label_set=one_hot_ratings, 
+        n_samples=size_test_set
+    )
 
     # define sizes (used to create matrixes of correct sizes)
     img_height = training_X[0].shape[0]
@@ -201,12 +231,14 @@ def main(_):
     # For saving and restoring the model
     saver = tf.train.Saver()
 
-    batch_size = 50
+    batch_size = 20
+    accuracy_treshold = 0.99
     print("\n")
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         true_targets = np.argmax(test_Y, axis=1)
         done = False
+        test_accuracy = 0
         for i in range(100):
 
             if done == True:
@@ -220,17 +252,15 @@ def main(_):
                     keep_prob: 1.0
                 })
                 pred_targets = np.hstack((pred_targets, np.array(batch_pred_targets)))
-
-            pred_targets = pred_targets.astype(int)
-            tot_correct = 0
-            for t in range(len(pred_targets)):
-                if true_targets[t] == pred_targets[t]:
-                    print("%d -> %d - %s -> %s" % (true_targets[t], pred_targets[t], type(true_targets[t]), type(pred_targets[t])))
-                    tot_correct += 1
-            test_accuracy = tot_correct/len(true_targets)
+            
+            test_accuracy = calc_accuracy(pred_targets, true_targets)
 
             print("\n")
             print("Step %d -> TEST Accuracy: %g" % (i, test_accuracy))
+
+            if test_accuracy > accuracy_treshold:
+                print("Finished training by exceeding accuracy treshold {}".format(accuracy_treshold))
+                break
 
             pred_targets = np.array([])
             true_targets = np.argmax(training_Y, axis=1)
@@ -238,67 +268,27 @@ def main(_):
                 train_step.run(feed_dict={
                     x: training_X[start:end], 
                     y_: training_Y[start:end], 
-                    keep_prob: 0.5
+                    keep_prob: 0.7
                 })
 
                 batch_pred_targets = sess.run(predict_operation, feed_dict={
                     x: training_X[start:end],
                     keep_prob: 1.0
                 })
-                pred_targets = np.hstack((pred_targets, np.array(batch_pred_targets)))
-                
-                batch_pred_targets = batch_pred_targets.astype(int)
-                tot_correct = 0
                 batch_true_targets = np.argmax(training_Y[start:end], axis=1)
-                for t in range(len(batch_pred_targets)):
-                    if true_targets[t] == pred_targets[t]:
-                        tot_correct += 1
-                batch_accuracy = tot_correct/len(pred_targets)
-                
-                print('\tBatch %d - %d -> TRAINING accuracy %g' % (start, end, batch_accuracy))
+                print('\tBatch %d - %d -> TRAINING accuracy %g' % (start, end, calc_accuracy(batch_pred_targets, batch_true_targets)))
 
-            
-            pred_targets = pred_targets.astype(int)
-            tot_correct = 0
-            for t in range(len(pred_targets)):
-                if true_targets[t] == pred_targets[t]:
-                    # print("%d -> %d" % (true_targets[t], pred_targets[t]))
-                    tot_correct += 1
-            test_accuracy = tot_correct/len(true_targets)
+                pred_targets = np.hstack((pred_targets, np.array(batch_pred_targets)))
 
-            print('\tAvg Batch -> TRAINING accuracy %g' % (test_accuracy))
+            training_accuracy = calc_accuracy(pred_targets, true_targets)
+            print('\tAvg Batch -> TRAINING accuracy %g' % (training_accuracy))
 
-            if test_accuracy > 0.999:
-                done = True
-                accuracy_score = accuracy.eval(feed_dict={
-                    x: test_X, 
-                    y_: test_Y, 
-                    keep_prob: 1.0
-                })
-                print("Accuracy on test set is: %d" % accuracy_score)
-                save_model(saver, sess)
+            if training_accuracy > accuracy_treshold:
+                print("The average accuracy exceeded the accuracy threshold {}".format(accuracy_treshold))
                 break
 
-        saver.restore(sess, get_model_path())
-
-        # pred_targets = np.array([])
-        # for start, end in zip(range(0, len(training_X), batch_size), range(batch_size, len(training_X) + batch_size, batch_size)):
-        #     batch_pred_targets = sess.run(predict_operation, feed_dict={
-        #         x: test_X,
-        #         keep_prob: 1.0
-        #     })
-        #     print(np.hstack((pred_targets, np.array(batch_pred_targets))))
-        #     pred_targets = np.apply_along_axis(int, 0, np.hstack((pred_targets, np.array(batch_pred_targets))))
-        # accuracy_score = np.mean(true_targets == pred_targets)
-        # for i in range(len(true_targets)):
-        #     print(true_targets[i], " - ", pred_targets[i])
-        # print("Accuracy on test set is: %d" % accuracy_score)
+        save_model(saver, sess)
+        print("Model saved.")
 
 if __name__ == '__main__':
-#   parser = argparse.ArgumentParser()
-#   parser.add_argument('--data_dir', type=str,
-#                       default='/tmp/tensorflow/mnist/input_data',
-#                       help='Directory for storing input data')
-#   FLAGS, unparsed = parser.parse_known_args()
-#   tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
     tf.app.run(main=main)
