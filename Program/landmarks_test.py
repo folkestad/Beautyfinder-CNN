@@ -18,9 +18,7 @@ def calc_ratios(landmarks):
     mouth_s     = landmarks[57]
     mouth_e     = landmarks[54]
 
-    print(type(left_eye_e))
-
-    eye_ratio = abs(
+    eyes_ratio = abs(
         math.sqrt(
             math.pow((left_eye_w[0]-left_eye_e[0]), 2) + math.pow((left_eye_w[1]-left_eye_e[1]), 2)
         )
@@ -60,13 +58,32 @@ def calc_ratios(landmarks):
         )
     )
 
-    print "Eye ratio:", eye_ratio
+    eyes_mouth_ratio = abs(
+        math.sqrt(
+            math.pow((left_eye_e[0]-mouth_w[0]), 2) + math.pow((left_eye_e[1]-mouth_w[1]), 2)
+        )
+        -
+        math.sqrt(
+            math.pow((right_eye_w[0]-mouth_e[0]), 2) + math.pow((right_eye_w[1]-mouth_e[1]), 2)
+        )
+    )
+
+    print "Eye ratio:", eyes_ratio
     print "Nose ratio:", nose_ratio
     print "Mouth ratio:", mouth_ratio
     print "Eyes-Nose ratio:", eyes_nose_ratio
+    print "Eyes-Mouth ratio:", eyes_mouth_ratio
 
-def get_landmarks():
-    image_path = '../Data/Test/b1.jpg'
+    return {
+        'eyes_ratio': eyes_ratio,
+        'nose_ratio': nose_ratio,
+        'mouth_ratio': mouth_ratio,
+        'eyes_nose_ratio': eyes_nose_ratio,
+        'eyes_mouth_ratio': eyes_mouth_ratio
+    }
+
+def get_landmarks(filename="b1.jpg"):
+    image_path = '../Data/Test/Beautiful/{}'.format(filename)
     cascade_path = '../Data/opencv/haarcascade_frontalface_default.xml'
     predictor_path = '../Data/dlib/shape_predictor_68_face_landmarks.dat'
 
@@ -80,7 +97,7 @@ def get_landmarks():
     image = cv2.imread(image_path)
 
     # Resize the image (not necessary)
-    image = cv2.resize(image, (1600, 1000)) 
+    # image = cv2.resize(image, (1000, 1000)) 
 
     # convert the image to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -126,10 +143,32 @@ def get_landmarks():
             # draw points on the landmark positions
             cv2.circle(image_copy, pos, 3, color=(0, 255, 255))
 
-    cv2.imshow("Faces found", image)
-    cv2.imshow("Landmarks found", image_copy)
-    cv2.waitKey(0)
+    # cv2.imshow("Faces found", image)
+    # cv2.imshow("Landmarks found", image_copy)
+    # cv2.waitKey(0)
     return landmarks
 
 if __name__ == '__main__':
-    calc_ratios(get_landmarks())
+    people = []
+    for i in range(1, 20):
+        people.append(calc_ratios(get_landmarks(filename="b{}.jpg".format(i))))
+    print people
+    print "\n"
+    avg_eyes_ratio = 0
+    avg_nose_ratio = 0
+    avg_mouth_ratio = 0
+    avg_eyes_nose_ratio = 0
+    avg_eyes_mouth_ratio = 0
+    for p in people:
+        avg_eyes_ratio += p['eyes_ratio']
+        avg_nose_ratio += p['nose_ratio']
+        avg_mouth_ratio += p['mouth_ratio']
+        avg_eyes_nose_ratio += p['eyes_nose_ratio']
+        avg_eyes_mouth_ratio += p['eyes_mouth_ratio']
+
+    print "Avg eyes ratio: {}".format(avg_eyes_ratio/len(people))
+    print "Avg nose ratio: {}".format(avg_nose_ratio/len(people))
+    print "Avg mouth ratio: {}".format(avg_mouth_ratio/len(people))
+    print "Avg eyes-nose ratio: {}".format(avg_eyes_nose_ratio/len(people))
+    print "Avg eyes-mouth ratio: {}".format(avg_eyes_mouth_ratio/len(people))
+
