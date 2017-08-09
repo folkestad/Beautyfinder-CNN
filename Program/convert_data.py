@@ -7,7 +7,6 @@ def csv_from_xlsx():
     sh = wb.sheet_by_name('Sheet1')
     csv_file = open('attractiveness_rating.csv', 'wb')
     wr = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
-
     for rownum in xrange(sh.nrows):
         wr.writerow(sh.row_values(rownum))
 

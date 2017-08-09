@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import dlib
 import math
+from align_face import *
 
 def calc_ratios(landmarks):
     landmarks = np.squeeze(np.asarray(landmarks))
@@ -94,7 +95,8 @@ def get_landmarks(filename="b1.jpg"):
     predictor = dlib.shape_predictor(predictor_path)
 
     # Read the image
-    image = cv2.imread(image_path)
+    # image = cv2.imread(image_path)
+    image = align_face(filename=filename)
 
     # Resize the image (not necessary)
     # image = cv2.resize(image, (1000, 1000)) 
@@ -143,9 +145,9 @@ def get_landmarks(filename="b1.jpg"):
             # draw points on the landmark positions
             cv2.circle(image_copy, pos, 3, color=(0, 255, 255))
 
-    # cv2.imshow("Faces found", image)
-    # cv2.imshow("Landmarks found", image_copy)
-    # cv2.waitKey(0)
+    cv2.imshow("Faces found", image)
+    cv2.imshow("Landmarks found", image_copy)
+    cv2.waitKey(0)
     return landmarks
 
 if __name__ == '__main__':
