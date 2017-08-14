@@ -7,7 +7,7 @@ import dlib
 import cv2
  
 
-def align_face(filename="test.jpg"):
+def align_face(dirname="Beautiful", filename="test.jpg"):
 	# initialize dlib's face detector (HOG-based) and then create
 	# the facial landmark predictor and the face aligner
 	detector = dlib.get_frontal_face_detector()
@@ -15,13 +15,13 @@ def align_face(filename="test.jpg"):
 	fa = FaceAligner(predictor, desiredFaceWidth=256)
 
 	# load the input image, resize it, and convert it to grayscale
-	image = cv2.imread('../Data/Test/Beautiful/{}'.format(filename))
+	image = cv2.imread('../Data/Test/{}/{}'.format(dirname, filename))
 	image = imutils.resize(image, width=800)
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	
 	# show the original input image and detect faces in the grayscale
 	# image
-	cv2.imshow("Input", image)
+	# cv2.imshow("Input", image)
 	rects = detector(gray, 2)
 
 	# loop over the face detections
