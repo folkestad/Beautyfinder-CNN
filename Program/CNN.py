@@ -61,7 +61,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     # W_conv1 = weight_variable([5, 5, 1, 32])
     W_conv1 = weight_variable([7, 7, 3, 128])
     b_conv1 = bias_variable([128])
-    h_conv1 = tf.nn.relu(conv2d(X, W_conv1) + b_conv1)
+    h_conv1 = tf.nn.elu(conv2d(X, W_conv1) + b_conv1)
 
     # Pooling layer - downsamples by 2X.
     h_pool1 = max_pool_2x2(h_conv1)
@@ -70,7 +70,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     # Second convolutional layer -- maps 96 feature maps to 256 of size 5x5.
     W_conv2 = weight_variable([5, 5, 128, 256])
     b_conv2 = bias_variable([256])
-    h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
+    h_conv2 = tf.nn.elu(conv2d(h_pool1, W_conv2) + b_conv2)
 
     # Second pooling layer.
     h_pool2 = max_pool_2x2(h_conv2)
@@ -79,7 +79,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     # Third convolutional layer -- maps 256 to 384 filters of size 3x3.
     W_conv3 = weight_variable([3, 3, 256, 384])
     b_conv3 = bias_variable([384])
-    h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3)
+    h_conv3 = tf.nn.elu(conv2d(h_pool2, W_conv3) + b_conv3)
 
     # Third pooling layer.
     h_pool3 = max_pool_2x2(h_conv3)
@@ -88,7 +88,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     # Fourth conv layer
     W_conv4 = weight_variable([3, 3, 384, 512])
     b_conv4 = bias_variable([512])
-    h_conv4 = tf.nn.relu(conv2d(h_pool3, W_conv4) + b_conv4)
+    h_conv4 = tf.nn.elu(conv2d(h_pool3, W_conv4) + b_conv4)
 
     # Fourth pooling layer
     h_pool4 = max_pool_2x2(h_conv4)
@@ -103,7 +103,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     b_fc1 = bias_variable([1024])
 
     last_pool_flat = tf.reshape(last_pool, [-1, int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*512])
-    h_fc1 = tf.nn.relu(tf.matmul(last_pool_flat, W_fc1) + b_fc1)
+    h_fc1 = tf.nn.elu(tf.matmul(last_pool_flat, W_fc1) + b_fc1)
 
     # Dropout - controls the complexity of the model, prevents co-adaptation of
     # features.

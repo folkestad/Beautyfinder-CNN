@@ -173,6 +173,8 @@ def get_landmarks(dirname="Beautiful", filename="b1.jpg", showimg=False, dim1=10
     )
 
     print("Found {0} faces!".format(len(faces)))
+    if len(faces) == 0:
+        return Exception
 
     image = gray
 
@@ -183,7 +185,7 @@ def get_landmarks(dirname="Beautiful", filename="b1.jpg", showimg=False, dim1=10
         # face_img = opencv.resize(face_img, (dim2, dim1)) 
         # Converting the OpenCV rectangle coordinates to Dlib rectangle
         dlib_rect = dlib.rectangle(int(x), int(y), int(x + w), int(y + h))
-        print dlib_rect
+        # print dlib_rect
 
         detected_landmarks = predictor(image, dlib_rect).parts()
 
