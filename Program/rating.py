@@ -10,28 +10,28 @@ from landmarks import *
 def rate_face(benchmarks, face):
     rating = 0
     print("Eyes-Nose ratio and benchmark: {} and {}".format(abs(benchmarks[0][0]-face[0]), benchmarks[0][1]))
-    if abs(benchmarks[0][0]-face[0]) < benchmarks[0][1]*4.5:
-        if abs(benchmarks[0][0]-face[0]) < benchmarks[0][1]*2:
+    if abs(benchmarks[0][0]-face[0]) < benchmarks[0][1]*4:
+        if abs(benchmarks[0][0]-face[0]) < benchmarks[0][1]*1.5:
             rating += 1
         rating += 1
     print("Nose ratio and benchmark: {} and {}".format(abs(benchmarks[1][0]-face[1]), benchmarks[1][1]))
-    if abs(benchmarks[1][0]-face[1]) < benchmarks[1][1]*9.5:
-        if abs(benchmarks[1][0]-face[1]) < benchmarks[1][1]*5:
+    if abs(benchmarks[1][0]-face[1]) < benchmarks[1][1]*9:
+        if abs(benchmarks[1][0]-face[1]) < benchmarks[1][1]*4.5:
             rating += 1
         rating += 1
     print("Mouth ratio and benchmark: {} and {}".format(abs(benchmarks[2][0]-face[2]), benchmarks[2][1]))
-    if abs(benchmarks[2][0]-face[2]) < benchmarks[2][1]*5.5:
-        if abs(benchmarks[2][0]-face[2]) < benchmarks[2][1]*4.5:
+    if abs(benchmarks[2][0]-face[2]) < benchmarks[2][1]*5:
+        if abs(benchmarks[2][0]-face[2]) < benchmarks[2][1]*4:
             rating += 1
         rating += 1
     print("Eyes-Nose angle ratio and benchmark: {} and {}".format(abs(benchmarks[3][0]-face[3]), benchmarks[3][1]))
-    if abs(benchmarks[3][0]-face[3]) < benchmarks[3][1]*10.5:
-        if abs(benchmarks[3][0]-face[3]) < benchmarks[3][1]*5:
+    if abs(benchmarks[3][0]-face[3]) < benchmarks[3][1]*10:
+        if abs(benchmarks[3][0]-face[3]) < benchmarks[3][1]*4.5:
             rating += 1
         rating += 1
     print("Eyes-Mouth ratio and benchmark: {} and {}".format(abs(benchmarks[4][0]-face[4]), benchmarks[4][1]))
-    if abs(benchmarks[4][0]-face[4]) < benchmarks[4][1]*6.5:
-        if abs(benchmarks[4][0]-face[4]) < benchmarks[4][1]*6:
+    if abs(benchmarks[4][0]-face[4]) < benchmarks[4][1]*6:
+        if abs(benchmarks[4][0]-face[4]) < benchmarks[4][1]*5.5:
             rating += 1
         rating += 1
     return rating
@@ -134,7 +134,14 @@ if __name__ == '__main__':
     for i,file_name in enumerate(files):
         if not file_name == ".DS_Store":
             try:
-                p = calc_ratios(get_landmarks(dirname=dirname, filename="{}".format(file_name), showimg=False, dim1=500, dim2=500))
+                p = calc_ratios(get_landmarks(
+                    dirname=dirname, 
+                    filename="{}".format(file_name), 
+                    showimg=False, 
+                    dim1=500, 
+                    dim2=500, 
+                    save_images=False
+                ))
                 people.append(p)
                 rating = rate_face(benchmarks, [
                     p['eyes_nose_ratio'],
@@ -144,7 +151,7 @@ if __name__ == '__main__':
                     p['eyes_mouth_ratio']
                 ])
                 file_names_ratings.append((file_name, rating))
-                print("{}: {} --> {}".format(i, file_name, rating))
+                print("{}: {} --> {}".format(i+1, file_name, rating))
             except:
                 print("Could not append to people: {}.".format(file_name))
             
@@ -153,7 +160,7 @@ if __name__ == '__main__':
     file_rel_path = os.path.join(current_dir, file_path)
     destfile = open(file_rel_path, 'w')
     for fr in file_names_ratings:
-        destfile.write("{};{}".format(file_names_ratings[0], file_names_ratings[1]))
+        destfile.write("{};{}\r\n".format(fr[0], fr[1]))
     destfile.close()
     print("Done writing to file.")
     # print people

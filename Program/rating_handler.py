@@ -20,16 +20,15 @@ import numpy as np
 #     scaled_ratings = [ int(math.floor((factor*r)+0.5)) for r in normalized_ratings ]
 #     return scaled_ratings
 
-def get_all_ratings():
+def get_all_ratings(file_name='renamed_cfd.csv'):
     current_dir = os.path.dirname(__file__)
-    file_name = 'renamed_cfd.csv'
     file_path = '../Data/{}'.format(file_name)
     file_rel_path = os.path.join(current_dir, file_path)
     rating_file = open(file_rel_path, 'r')
 
     all_ratings = [] 
     for i,line in enumerate(rating_file):
-        all_ratings.append(int(line.replace("\r\n", "")))
+        all_ratings.append(int(line.replace("\r\n", "").split(";")[1]))
     return all_ratings
 
 def one_hot_encode(labels, n_classes=10):

@@ -143,11 +143,10 @@ def calc_ratios(landmarks):
         'eyes_mouth_ratio': eyes_mouth_ratio
     }
 
-def get_landmarks(dirname="Beautiful", filename="b1.jpg", showimg=False, dim1=100, dim2=100):
-    image_path = '../Data/Test/{}/{}'.format(dirname, filename)
+def get_landmarks(dirname="Beautiful", dest_dir="Processed_CFD", filename="b1.jpg", showimg=False, dim1=100, dim2=100, save_images=False):
+    image_path = '../Data/{}/{}'.format(dirname, filename)
     cascade_path = '../Data/opencv/haarcascade_frontalface_default.xml'
     predictor_path = '../Data/dlib/shape_predictor_68_face_landmarks.dat'
-
     # Create the haar cascade
     faceCascade = cv2.CascadeClassifier(cascade_path)
 
@@ -157,6 +156,7 @@ def get_landmarks(dirname="Beautiful", filename="b1.jpg", showimg=False, dim1=10
     # Read the image
     # image = cv2.imread(image_path)
     image = align_face(dirname=dirname, filename=filename)
+    real_image = image
     # Resize the image (not necessary)
     # image = cv2.resize(image, (1000, 1000)) 
 
@@ -181,7 +181,12 @@ def get_landmarks(dirname="Beautiful", filename="b1.jpg", showimg=False, dim1=10
     # Draw a rectangle around the faces
     for (x, y, w, h) in faces:
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        # face_img = img[y:y+h, x:x+w]
+        face_img = real_image[y:y+h, x:x+w]
+        if save_images:
+            current_dir = os.path.dirname(__file__)
+            file_path = '../Data/{}/{}'.format(dest_dir, filename)
+            file_rel_path = os.path.join(current_dir, file_path)
+            cv2.imwrite(file_rel_path, face_img)
         # face_img = opencv.resize(face_img, (dim2, dim1)) 
         # Converting the OpenCV rectangle coordinates to Dlib rectangle
         dlib_rect = dlib.rectangle(int(x), int(y), int(x + w), int(y + h))

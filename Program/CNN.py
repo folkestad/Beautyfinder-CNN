@@ -119,14 +119,14 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     return y_conv, keep_prob
 
 
-def conv2d(x, W):
+def conv2d(x, W, padd):
     """conv2d returns a 2d convolution layer with full stride."""
-    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
+    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding=padd)
 
 
 def max_pool_2x2(x):
     """max_pool_2x2 downsamples a feature map by 2X."""
-    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+    return tf.nn.max_pool(x, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME')
 
 
 def weight_variable(shape):
@@ -189,9 +189,9 @@ def split_to_training_and_test(data_set=[], label_set=[], n_samples=0):
 def main(_):
 
     #import data
-    all_images = get_all_resized_images(dim1=32,dim2=32, haar=False, dir_name="HAAR_CFD")
+    all_images = get_all_resized_images(dim1=32,dim2=32, haar=False, dir_name="Processed_CFD")
     print("No. images", len(all_images), "-> Dims e0: ", all_images[0].shape)
-    all_ratings = get_all_ratings()
+    all_ratings = get_all_ratings(file_name='cfd_ratings.txt')
     print("Rating e0: ", all_ratings[0])
     one_hot_ratings = one_hot_encode(all_ratings, n_classes=10)
     print("One Hot Rating e0: ", one_hot_ratings[0])
