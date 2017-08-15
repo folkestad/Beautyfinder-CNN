@@ -59,7 +59,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
 
     # First convolutional layer - maps 3 channel RGB image to 96 feature maps of size 7x7.
     # W_conv1 = weight_variable([5, 5, 1, 32])
-    W_conv1 = weight_variable([5, 5, 3, 64])
+    W_conv1 = weight_variable([48, 48, 3, 64])
     b_conv1 = bias_variable([64])
     h_conv1 = tf.nn.elu(conv2d(X, W_conv1) + b_conv1)
 
@@ -71,7 +71,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     print("Size after first downsampling: ", h_norm1.shape)
 
     # Second convolutional layer -- maps 96 feature maps to 256 of size 5x5.
-    W_conv2 = weight_variable([5, 5, 64, 128])
+    W_conv2 = weight_variable([24, 24, 64, 128])
     b_conv2 = bias_variable([128])
     h_conv2 = tf.nn.elu(conv2d(h_norm1, W_conv2) + b_conv2)
 
@@ -83,7 +83,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     print("Size after second downsampling: ", h_pool2.shape)
 
     # Third convolutional layer -- maps 256 to 384 filters of size 3x3.
-    W_conv3 = weight_variable([5, 5, 128, 256])
+    W_conv3 = weight_variable([12, 12, 128, 256])
     b_conv3 = bias_variable([256])
     h_conv3 = tf.nn.elu(conv2d(h_pool2, W_conv3) + b_conv3)
 
