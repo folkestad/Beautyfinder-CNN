@@ -59,50 +59,59 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
 
     # First convolutional layer - maps 3 channel RGB image to 96 feature maps of size 7x7.
     # W_conv1 = weight_variable([5, 5, 1, 32])
-    W_conv1 = weight_variable([7, 7, 3, 128])
-    b_conv1 = bias_variable([128])
+    W_conv1 = weight_variable([5, 5, 3, 64])
+    b_conv1 = bias_variable([64])
     h_conv1 = tf.nn.elu(conv2d(X, W_conv1) + b_conv1)
 
     # Pooling layer - downsamples by 2X.
     h_pool1 = max_pool_2x2(h_conv1)
-    print("Size after first downsampling: ", h_pool1.shape)
+
+    # Normalize
+    h_norm1 = tf.nn.lrn(h_pool1, 4, bias=1.0, alpha=0.001/9.0, beta=0.75)
+    print("Size after first downsampling: ", h_norm1.shape)
 
     # Second convolutional layer -- maps 96 feature maps to 256 of size 5x5.
-    W_conv2 = weight_variable([5, 5, 128, 256])
-    b_conv2 = bias_variable([256])
-    h_conv2 = tf.nn.elu(conv2d(h_pool1, W_conv2) + b_conv2)
+    W_conv2 = weight_variable([5, 5, 64, 128])
+    b_conv2 = bias_variable([128])
+    h_conv2 = tf.nn.elu(conv2d(h_norm1, W_conv2) + b_conv2)
 
+    # Normalize
+    h_norm2 = tf.nn.lrn(h_conv2, 4, bias=1.0, alpha=0.001/9.0, beta=0.75)
+    
     # Second pooling layer.
-    h_pool2 = max_pool_2x2(h_conv2)
+    h_pool2 = max_pool_2x2(h_norm2)
     print("Size after second downsampling: ", h_pool2.shape)
 
     # Third convolutional layer -- maps 256 to 384 filters of size 3x3.
-    W_conv3 = weight_variable([3, 3, 256, 384])
-    b_conv3 = bias_variable([384])
+    W_conv3 = weight_variable([5, 5, 128, 256])
+    b_conv3 = bias_variable([256])
     h_conv3 = tf.nn.elu(conv2d(h_pool2, W_conv3) + b_conv3)
 
+    # Normalize
+    h_norm3 = tf.nn.lrn(h_conv3, 4, bias=1.0, alpha=0.001/9.0, beta=0.75)
+
     # Third pooling layer.
-    h_pool3 = max_pool_2x2(h_conv3)
+    h_pool3 = max_pool_2x2(h_norm3)
     print("Size after third downsampling: ", h_pool3.shape)
 
-    # Fourth conv layer
-    W_conv4 = weight_variable([3, 3, 384, 512])
-    b_conv4 = bias_variable([512])
-    h_conv4 = tf.nn.elu(conv2d(h_pool3, W_conv4) + b_conv4)
+    # # Fourth conv layer
+    # W_conv4 = weight_variable([3, 3, 384, 512])
+    # b_conv4 = bias_variable([512])
+    # h_conv4 = tf.nn.elu(conv2d(h_pool3, W_conv4) + b_conv4)
 
-    # Fourth pooling layer
-    h_pool4 = max_pool_2x2(h_conv4)
-    print("Size after third downsampling: ", h_pool4.shape)
+    # # Fourth pooling layer
+    # h_pool4 = max_pool_2x2(h_conv4)
+    # print("Size after third downsampling: ", h_pool4.shape)
 
-    last_pool = h_pool4
+    last_pool = h_pool3
     # Fully connected layer 1 -- after 2 round of downsampling, our 28x28 image
     # is down to 7x7x64 feature maps -- maps this to 1024 features.
 
     # 40*30 -> 20*15 -> 10*8 just check sizes after pooling. Learn how to calculate the size sometime.
-    W_fc1 = weight_variable([int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*512, 1024])
-    b_fc1 = bias_variable([1024])
+    W_fc1 = weight_variable([int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*256, 4096])
+    b_fc1 = bias_variable([4096])
 
-    last_pool_flat = tf.reshape(last_pool, [-1, int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*512])
+    last_pool_flat = tf.reshape(last_pool, [-1, int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*256])
     h_fc1 = tf.nn.elu(tf.matmul(last_pool_flat, W_fc1) + b_fc1)
 
     # Dropout - controls the complexity of the model, prevents co-adaptation of
@@ -111,7 +120,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
     # Map the 1024 features to 10 classes, one for each digit
-    W_fc2 = weight_variable([1024, img_classes])
+    W_fc2 = weight_variable([4096, img_classes])
     b_fc2 = bias_variable([img_classes])
 
     y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
@@ -119,9 +128,9 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     return y_conv, keep_prob
 
 
-def conv2d(x, W, padd):
+def conv2d(x, W):
     """conv2d returns a 2d convolution layer with full stride."""
-    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding=padd)
+    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
 
 
 def max_pool_2x2(x):
@@ -232,8 +241,8 @@ def main(_):
     # For saving and restoring the model
     saver = tf.train.Saver()
 
-    batch_size = 20
-    accuracy_treshold = 0.99
+    batch_size = 60
+    accuracy_treshold = 0.90
     print("\n")
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -269,7 +278,7 @@ def main(_):
                 train_step.run(feed_dict={
                     x: training_X[start:end], 
                     y_: training_Y[start:end], 
-                    keep_prob: 0.7
+                    keep_prob: 0.8
                 })
 
                 batch_pred_targets = sess.run(predict_operation, feed_dict={
