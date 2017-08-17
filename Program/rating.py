@@ -116,9 +116,16 @@ def calc_ratios(landmarks):
         'eyes_mouth_ratio': eyes_mouth_ratio
     }
 
+# def calc_celeb_ratios(landmarks):
+#     lefteye = landmarks[0]
+#     righteye = landmarks[1]
+#     nose = landmarks[2]
+#     left_mouth = landmarks[3]
+#     right_mouth = landmarks[4]
+
 if __name__ == '__main__':
     people = []
-    dirname="Renamed_CFD"
+    dirname="Many_datasets"
     write_to_file = False
 
     current_dir = os.path.dirname(__file__)
@@ -135,12 +142,13 @@ if __name__ == '__main__':
         if not file_name == ".DS_Store":
             try:
                 p = calc_ratios(get_landmarks(
-                    dirname=dirname, 
+                    dirname=dirname,
+                    dest_dir="Processed_Many_datasets",
                     filename="{}".format(file_name), 
                     showimg=False, 
                     dim1=500, 
                     dim2=500, 
-                    save_images=False
+                    save_images=True
                 ))
                 people.append(p)
                 rating = rate_face(benchmarks, [
@@ -156,7 +164,7 @@ if __name__ == '__main__':
                 print("Could not append to people: {}.".format(file_name))
             
     current_dir = os.path.dirname(__file__)
-    file_path = '../Data/{}'.format("cfd_ratings.txt")
+    file_path = '../Data/{}'.format("Many_datasets_ratings.txt")
     file_rel_path = os.path.join(current_dir, file_path)
     destfile = open(file_rel_path, 'w')
     for fr in file_names_ratings:

@@ -173,7 +173,7 @@ def get_landmarks(dirname="Beautiful", dest_dir="Processed_CFD", filename="b1.jp
     )
 
     print("Found {0} faces!".format(len(faces)))
-    if len(faces) == 0:
+    if len(faces) != 1:
         return Exception
 
     image = gray

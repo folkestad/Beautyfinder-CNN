@@ -59,7 +59,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
 
     # First convolutional layer - maps 3 channel RGB image to 96 feature maps of size 7x7.
     # W_conv1 = weight_variable([5, 5, 1, 32])
-    W_conv1 = weight_variable([48, 48, 3, 64])
+    W_conv1 = weight_variable([3, 3, 3, 64])
     b_conv1 = bias_variable([64])
     h_conv1 = tf.nn.elu(conv2d(X, W_conv1) + b_conv1)
 
@@ -71,8 +71,8 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     print("Size after first downsampling: ", h_norm1.shape)
 
     # Second convolutional layer -- maps 96 feature maps to 256 of size 5x5.
-    W_conv2 = weight_variable([24, 24, 64, 128])
-    b_conv2 = bias_variable([128])
+    W_conv2 = weight_variable([5, 5, 64, 32])
+    b_conv2 = bias_variable([32])
     h_conv2 = tf.nn.elu(conv2d(h_norm1, W_conv2) + b_conv2)
 
     # Normalize
@@ -83,8 +83,8 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     print("Size after second downsampling: ", h_pool2.shape)
 
     # Third convolutional layer -- maps 256 to 384 filters of size 3x3.
-    W_conv3 = weight_variable([12, 12, 128, 256])
-    b_conv3 = bias_variable([256])
+    W_conv3 = weight_variable([7, 7, 32, 16])
+    b_conv3 = bias_variable([16])
     h_conv3 = tf.nn.elu(conv2d(h_pool2, W_conv3) + b_conv3)
 
     # Normalize
@@ -108,10 +108,10 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     # is down to 7x7x64 feature maps -- maps this to 1024 features.
 
     # 40*30 -> 20*15 -> 10*8 just check sizes after pooling. Learn how to calculate the size sometime.
-    W_fc1 = weight_variable([int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*256, 4096])
-    b_fc1 = bias_variable([4096])
+    W_fc1 = weight_variable([int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*16, 32])
+    b_fc1 = bias_variable([32])
 
-    last_pool_flat = tf.reshape(last_pool, [-1, int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*256])
+    last_pool_flat = tf.reshape(last_pool, [-1, int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*16])
     h_fc1 = tf.nn.elu(tf.matmul(last_pool_flat, W_fc1) + b_fc1)
 
     # Dropout - controls the complexity of the model, prevents co-adaptation of
@@ -120,7 +120,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
     # Map the 1024 features to 10 classes, one for each digit
-    W_fc2 = weight_variable([4096, img_classes])
+    W_fc2 = weight_variable([32, img_classes])
     b_fc2 = bias_variable([img_classes])
 
     y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
@@ -198,9 +198,9 @@ def split_to_training_and_test(data_set=[], label_set=[], n_samples=0):
 def main(_):
 
     #import data
-    all_images = get_all_resized_images(dim1=32,dim2=32, haar=False, dir_name="Processed_CFD")
+    all_images = get_all_resized_images(dim1=32,dim2=32, haar=False, dir_name="Processed_Many_datasets")
     print("No. images", len(all_images), "-> Dims e0: ", all_images[0].shape)
-    all_ratings = get_all_ratings(file_name='cfd_ratings.txt')
+    all_ratings = get_all_ratings(file_name='Many_datasets_ratings.txt')
     print("Rating e0: ", all_ratings[0])
     one_hot_ratings = one_hot_encode(all_ratings, n_classes=10)
     print("One Hot Rating e0: ", one_hot_ratings[0])

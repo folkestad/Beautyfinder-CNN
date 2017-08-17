@@ -4,12 +4,14 @@ import cv2
 import tensorflow as tf
 from CNN import *
 from HAAR import *
+from align_face import *
 
 def classify_image_to_beauty_scale(file_name="test.jpg", dim1=32, dim2=32):
 
     # img = get_image(file_name=file_name)
-    haar_img = haar_cascade(dir_name="Test", file_name=file_name)
-    resized_image = resize_image(haar_img, dim1, dim2)
+    # haar_img = haar_cascade(dir_name="Test", file_name=file_name)
+    aligned_face = align_face(dirname="Test", filename=file_name)
+    resized_image = resize_image(aligned_face, dim1, dim2)
 
     x = tf.placeholder(tf.float32, [None, resized_image.shape[0], resized_image.shape[1], resized_image.shape[2]])
     y_conv, keep_prob = cnn_model(x, resized_image.shape[0], resized_image.shape[1], resized_image.shape[2], 11)
@@ -30,6 +32,7 @@ def classify_image_to_beauty_scale(file_name="test.jpg", dim1=32, dim2=32):
     img = cv2.imread(file_rel_path)
     print(type(img), img.shape)
     show_image(img)
+    show_image(aligned_face)
 
 
 
@@ -59,4 +62,4 @@ def resize_image(img, dim1, dim2):
     return resized_img
 
 if __name__ == '__main__':
-    classify_image_to_beauty_scale(file_name="b1.jpg", dim1=32, dim2=32)
+    classify_image_to_beauty_scale(file_name="eirik.jpg", dim1=32, dim2=32)
