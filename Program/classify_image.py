@@ -6,11 +6,11 @@ from CNN import *
 from HAAR import *
 from align_face import *
 
-def classify_image_to_beauty_scale(file_name="test.jpg", dim1=32, dim2=32):
+def classify_image_to_beauty_scale(dirname="Test", file_name="test.jpg", dim1=32, dim2=32):
 
     # img = get_image(file_name=file_name)
     # haar_img = haar_cascade(dir_name="Test", file_name=file_name)
-    aligned_face = align_face(dirname="Test", filename=file_name)
+    aligned_face = align_face(dirname=dirname, filename=file_name)
     resized_image = resize_image(aligned_face, dim1, dim2)
 
     x = tf.placeholder(tf.float32, [None, resized_image.shape[0], resized_image.shape[1], resized_image.shape[2]])
@@ -27,7 +27,7 @@ def classify_image_to_beauty_scale(file_name="test.jpg", dim1=32, dim2=32):
         print("The person in the image is a {} on the beauty scale.".format(result))
     
     current_dir = os.path.dirname(__file__)
-    file_path = '../Data/Test/{}'.format(file_name)
+    file_path = '../Data/{}/{}'.format(dirname, file_name)
     file_rel_path = os.path.join(current_dir, file_path)
     img = cv2.imread(file_rel_path)
     print(type(img), img.shape)
@@ -62,4 +62,4 @@ def resize_image(img, dim1, dim2):
     return resized_img
 
 if __name__ == '__main__':
-    classify_image_to_beauty_scale(file_name="eirik.jpg", dim1=32, dim2=32)
+    classify_image_to_beauty_scale(dirname="Test/Beautiful", file_name="b12.jpg", dim1=32, dim2=32)

@@ -125,7 +125,7 @@ def calc_ratios(landmarks):
 
 if __name__ == '__main__':
     people = []
-    dirname="Many_datasets"
+    dirname="Combined_datasets"
     write_to_file = False
 
     current_dir = os.path.dirname(__file__)
@@ -143,7 +143,7 @@ if __name__ == '__main__':
             try:
                 p = calc_ratios(get_landmarks(
                     dirname=dirname,
-                    dest_dir="Processed_Many_datasets",
+                    dest_dir="Processed_Combined_datasets",
                     filename="{}".format(file_name), 
                     showimg=False, 
                     dim1=500, 
@@ -164,7 +164,7 @@ if __name__ == '__main__':
                 print("Could not append to people: {}.".format(file_name))
             
     current_dir = os.path.dirname(__file__)
-    file_path = '../Data/{}'.format("Many_datasets_ratings.txt")
+    file_path = '../Data/{}'.format("Combined_datasets_ratings.txt")
     file_rel_path = os.path.join(current_dir, file_path)
     destfile = open(file_rel_path, 'w')
     for fr in file_names_ratings:

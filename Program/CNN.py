@@ -94,24 +94,24 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     h_pool3 = max_pool_2x2(h_norm3)
     print("Size after third downsampling: ", h_pool3.shape)
 
-    # # Fourth conv layer
-    # W_conv4 = weight_variable([3, 3, 384, 512])
-    # b_conv4 = bias_variable([512])
-    # h_conv4 = tf.nn.elu(conv2d(h_pool3, W_conv4) + b_conv4)
+    # Fourth conv layer
+    W_conv4 = weight_variable([9, 9, 16, 8])
+    b_conv4 = bias_variable([8])
+    h_conv4 = tf.nn.elu(conv2d(h_pool3, W_conv4) + b_conv4)
 
-    # # Fourth pooling layer
-    # h_pool4 = max_pool_2x2(h_conv4)
-    # print("Size after third downsampling: ", h_pool4.shape)
+    # Fourth pooling layer
+    h_pool4 = max_pool_2x2(h_conv4)
+    print("Size after third downsampling: ", h_pool4.shape)
 
-    last_pool = h_pool3
+    last_pool = h_pool4
     # Fully connected layer 1 -- after 2 round of downsampling, our 28x28 image
     # is down to 7x7x64 feature maps -- maps this to 1024 features.
 
     # 40*30 -> 20*15 -> 10*8 just check sizes after pooling. Learn how to calculate the size sometime.
-    W_fc1 = weight_variable([int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*16, 32])
+    W_fc1 = weight_variable([int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*8, 32])
     b_fc1 = bias_variable([32])
 
-    last_pool_flat = tf.reshape(last_pool, [-1, int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*16])
+    last_pool_flat = tf.reshape(last_pool, [-1, int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*8])
     h_fc1 = tf.nn.elu(tf.matmul(last_pool_flat, W_fc1) + b_fc1)
 
     # Dropout - controls the complexity of the model, prevents co-adaptation of
@@ -249,7 +249,7 @@ def main(_):
         true_targets = np.argmax(test_Y, axis=1)
         done = False
         test_accuracy = 0
-        for i in range(100):
+        for i in range(500):
 
             if done == True:
                 break
