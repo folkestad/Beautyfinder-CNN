@@ -31,15 +31,18 @@ def get_all_images(dir_name="Renamed_CFD"):
 
 def get_all_resized_images(dim1=400, dim2=300, haar=False, dir_name="Renamed_CFD"):
     all_resized_images = []
+    current_dir = os.path.dirname(__file__)
     src_dir = '../Data/{}'.format(dir_name)
-    files = os.walk(src_dir).next()[2]
+    dir_rel_path = os.path.join(current_dir, src_dir)
+    files = os.walk(dir_rel_path).next()[2]
     for file_name in files:
-        if haar:
-            img = haar_cascade(dir_name=dir_name, file_name=file_name)
-        else:
-            img = get_image(dir_name=dir_name, file_name=file_name)
-        resized_img = resize_image(img, dim1, dim2)
-        all_resized_images.append(resized_img)
+        if file_name != '.DS_Store':
+            if haar:
+                img = haar_cascade(dir_name=dir_name, file_name=file_name)
+            else:
+                img = get_image(dir_name=dir_name, file_name=file_name)
+            resized_img = resize_image(img, dim1, dim2)
+            all_resized_images.append(resized_img)
     return all_resized_images
 
 def move_images(src_dir='../Data/CFD_Version/Images', dest_dir='../Data/New_Dataset'):

@@ -59,8 +59,8 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
 
     # First convolutional layer - maps 3 channel RGB image to 96 feature maps of size 7x7.
     # W_conv1 = weight_variable([5, 5, 1, 32])
-    W_conv1 = weight_variable([3, 3, 3, 64])
-    b_conv1 = bias_variable([64])
+    W_conv1 = weight_variable([3, 3, 3, 32])
+    b_conv1 = bias_variable([32])
     h_conv1 = tf.nn.elu(conv2d(X, W_conv1) + b_conv1)
 
     # Pooling layer - downsamples by 2X.
@@ -71,8 +71,8 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     print("Size after first downsampling: ", h_norm1.shape)
 
     # Second convolutional layer -- maps 96 feature maps to 256 of size 5x5.
-    W_conv2 = weight_variable([5, 5, 64, 32])
-    b_conv2 = bias_variable([32])
+    W_conv2 = weight_variable([5, 5, 32, 16])
+    b_conv2 = bias_variable([16])
     h_conv2 = tf.nn.elu(conv2d(h_norm1, W_conv2) + b_conv2)
 
     # Normalize
@@ -83,8 +83,8 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     print("Size after second downsampling: ", h_pool2.shape)
 
     # Third convolutional layer -- maps 256 to 384 filters of size 3x3.
-    W_conv3 = weight_variable([7, 7, 32, 16])
-    b_conv3 = bias_variable([16])
+    W_conv3 = weight_variable([7, 7, 16, 8])
+    b_conv3 = bias_variable([8])
     h_conv3 = tf.nn.elu(conv2d(h_pool2, W_conv3) + b_conv3)
 
     # Normalize
@@ -95,23 +95,38 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     print("Size after third downsampling: ", h_pool3.shape)
 
     # Fourth conv layer
-    W_conv4 = weight_variable([9, 9, 16, 8])
-    b_conv4 = bias_variable([8])
+    W_conv4 = weight_variable([9, 9, 8, 4])
+    b_conv4 = bias_variable([4])
     h_conv4 = tf.nn.elu(conv2d(h_pool3, W_conv4) + b_conv4)
 
-    # Fourth pooling layer
-    h_pool4 = max_pool_2x2(h_conv4)
-    print("Size after third downsampling: ", h_pool4.shape)
+    # Normalize
+    h_norm4 = tf.nn.lrn(h_conv4, 4, bias=1.0, alpha=0.001/9.0, beta=0.75)
 
-    last_pool = h_pool4
+    # Fourth pooling layer
+    h_pool4 = max_pool_2x2(h_norm4)
+    print("Size after fourth downsampling: ", h_pool4.shape)
+
+    # Fifth conv layer
+    W_conv5 = weight_variable([12, 12, 4, 2])
+    b_conv5 = bias_variable([2])
+    h_conv5 = tf.nn.elu(conv2d(h_pool4, W_conv5) + b_conv5)
+
+    # Normalize
+    h_norm5 = tf.nn.lrn(h_conv5, 4, bias=1.0, alpha=0.001/9.0, beta=0.75)
+
+    # Fourth pooling layer
+    h_pool5 = max_pool_2x2(h_norm5)
+    print("Size after fourth downsampling: ", h_pool5.shape)
+
+    last_pool = h_pool5
     # Fully connected layer 1 -- after 2 round of downsampling, our 28x28 image
     # is down to 7x7x64 feature maps -- maps this to 1024 features.
 
     # 40*30 -> 20*15 -> 10*8 just check sizes after pooling. Learn how to calculate the size sometime.
-    W_fc1 = weight_variable([int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*8, 32])
-    b_fc1 = bias_variable([32])
+    W_fc1 = weight_variable([int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*2, 64])
+    b_fc1 = bias_variable([64])
 
-    last_pool_flat = tf.reshape(last_pool, [-1, int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*8])
+    last_pool_flat = tf.reshape(last_pool, [-1, int(last_pool.get_shape()[1])*int(last_pool.get_shape()[2])*2])
     h_fc1 = tf.nn.elu(tf.matmul(last_pool_flat, W_fc1) + b_fc1)
 
     # Dropout - controls the complexity of the model, prevents co-adaptation of
@@ -120,7 +135,7 @@ def cnn_model(X, img_height, img_width, img_channels, img_classes):
     h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
     # Map the 1024 features to 10 classes, one for each digit
-    W_fc2 = weight_variable([32, img_classes])
+    W_fc2 = weight_variable([64, img_classes])
     b_fc2 = bias_variable([img_classes])
 
     y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
@@ -135,7 +150,7 @@ def conv2d(x, W):
 
 def max_pool_2x2(x):
     """max_pool_2x2 downsamples a feature map by 2X."""
-    return tf.nn.max_pool(x, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME')
+    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
 
 def weight_variable(shape):
@@ -167,16 +182,6 @@ def get_model_path(file_name='model.ckpt'):
 
     return file_rel_path
 
-def calc_accuracy(pred_targets, true_targets):
-    pred_targets = pred_targets.astype(int)
-    tot_correct = 0
-    for i in range(len(pred_targets)):
-        if true_targets[i] == pred_targets[i]:
-            # print("%d -> %d - %s -> %s" % (true_targets[i], pred_targets[i], type(true_targets[i]), type(pred_targets[i])))
-            tot_correct += 1
-    test_accuracy = tot_correct/len(true_targets)
-    return test_accuracy
-
 def split_to_training_and_test(data_set=[], label_set=[], n_samples=0):
     index_list = []
     l = len(data_set) - 1
@@ -198,7 +203,7 @@ def split_to_training_and_test(data_set=[], label_set=[], n_samples=0):
 def main(_):
 
     #import data
-    all_images = get_all_resized_images(dim1=32,dim2=32, haar=False, dir_name="Processed_Many_datasets")
+    all_images = get_all_resized_images(dim1=64,dim2=64, haar=False, dir_name="Processed_Many_datasets")
     print("No. images", len(all_images), "-> Dims e0: ", all_images[0].shape)
     all_ratings = get_all_ratings(file_name='Many_datasets_ratings.txt')
     print("Rating e0: ", all_ratings[0])
@@ -242,7 +247,7 @@ def main(_):
     saver = tf.train.Saver()
 
     batch_size = 60
-    accuracy_treshold = 0.90
+    accuracy_treshold = 0.95
     print("\n")
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -263,17 +268,21 @@ def main(_):
                 })
                 pred_targets = np.hstack((pred_targets, np.array(batch_pred_targets)))
             
-            test_accuracy = calc_accuracy(pred_targets, true_targets)
+            test_accuracy = get_accuracy(pred_targets, true_targets)
 
             print("\n")
             print("Step %d -> TEST Accuracy: %g" % (i, test_accuracy))
-
+            print("Precision, Recall, F-score, Support: {}".format(get_performance(pred_targets, true_targets)))
+            print("{} ----- Classification Report TEST SET -----".format(i+1))
+            print(get_classification_report(pred_targets, true_targets))
+            
             if test_accuracy > accuracy_treshold:
                 print("Finished training by exceeding accuracy treshold {}".format(accuracy_treshold))
                 break
 
             pred_targets = np.array([])
             true_targets = np.argmax(training_Y, axis=1)
+            print(training_Y[0])
             for start, end in zip(range(0, len(training_X), batch_size), range(batch_size, len(training_X) + batch_size, batch_size)):
                 train_step.run(feed_dict={
                     x: training_X[start:end], 
@@ -292,7 +301,8 @@ def main(_):
 
             training_accuracy = calc_accuracy(pred_targets, true_targets)
             print('\tAvg Batch -> TRAINING accuracy %g' % (training_accuracy))
-            # print(classification_report(pred_targets, true_targets))
+            print("{} ----- Classification Report TRAINING SET -----".format(i+1))
+            print(get_classification_report(pred_targets, true_targets))
 
             if training_accuracy > accuracy_treshold:
                 print("The average accuracy exceeded the accuracy threshold {}".format(accuracy_treshold))
