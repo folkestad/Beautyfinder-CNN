@@ -143,8 +143,7 @@ def calc_ratios(landmarks):
         'eyes_mouth_ratio': eyes_mouth_ratio
     }
 
-def get_landmarks(dirname="Beautiful", dest_dir="Processed_CFD", filename="b1.jpg", showimg=False, dim1=100, dim2=100, save_images=False):
-    image_path = '../Data/{}/{}'.format(dirname, filename)
+def get_landmarks(dirname="Presentation", dest_dir="Presentation", filename="donald.jpg", new_filename="1.jpg", showimg=False, dim1=100, dim2=100, save_images=False):
     cascade_path = '../Data/opencv/haarcascade_frontalface_default.xml'
     predictor_path = '../Data/dlib/shape_predictor_68_face_landmarks.dat'
     # Create the haar cascade
@@ -154,9 +153,11 @@ def get_landmarks(dirname="Beautiful", dest_dir="Processed_CFD", filename="b1.jp
     predictor = dlib.shape_predictor(predictor_path)
 
     # Read the image
-    # image = cv2.imread(image_path)
     image = align_face(dirname=dirname, filename=filename)
     real_image = image
+
+    # cv2.imshow("Aligned", image)
+    # cv2.waitKey(0)
     # Resize the image (not necessary)
     # image = cv2.resize(image, (1000, 1000)) 
 
@@ -184,7 +185,7 @@ def get_landmarks(dirname="Beautiful", dest_dir="Processed_CFD", filename="b1.jp
         face_img = real_image[y:y+h, x:x+w]
         if save_images:
             current_dir = os.path.dirname(__file__)
-            file_path = '../Data/{}/{}'.format(dest_dir, filename)
+            file_path = '../Data/Datasets/{}/{}'.format(dest_dir, new_filename)
             file_rel_path = os.path.join(current_dir, file_path)
             cv2.imwrite(file_rel_path, face_img)
         # face_img = opencv.resize(face_img, (dim2, dim1)) 
@@ -219,106 +220,107 @@ def get_landmarks(dirname="Beautiful", dest_dir="Processed_CFD", filename="b1.jp
     return landmarks
 
 if __name__ == '__main__':
-    people = []
-    dirname="Comparison"
-    write_to_file = False
+    get_landmarks()
+    # people = []
+    # dirname="Comparison"
+    # write_to_file = False
 
-    current_dir = os.path.dirname(__file__)
-    file_path = '../Data/{}'.format("benchmarks.txt")
-    file_rel_path = os.path.join(current_dir, file_path)
-    benchmarks_file = open(file_rel_path, 'r')
-    benchmarks = [ [float(b.replace("\r\n", "").split(";")[0]), float(b.replace("\r\n", "").split(";")[1])] for b in benchmarks_file ]
+    # current_dir = os.path.dirname(__file__)
+    # file_path = '../Data/{}'.format("benchmarks.txt")
+    # file_rel_path = os.path.join(current_dir, file_path)
+    # benchmarks_file = open(file_rel_path, 'r')
+    # benchmarks = [ [float(b.replace("\r\n", "").split(";")[0]), float(b.replace("\r\n", "").split(";")[1])] for b in benchmarks_file ]
     
-    src_dir = '../Data/Test/{}'.format(dirname)
-    files = os.walk(src_dir).next()[2]
-    file_names = []
-    for file_name in files:
-        if not file_name == ".DS_Store":
-            people.append(calc_ratios(get_landmarks(dirname=dirname, filename="{}".format(file_name), showimg=False, dim1=100, dim2=100)))
-            file_names.append(file_name)
+    # src_dir = '../Data/Test/{}'.format(dirname)
+    # files = os.walk(src_dir).next()[2]
+    # file_names = []
+    # for file_name in files:
+    #     if not file_name == ".DS_Store":
+    #         people.append(calc_ratios(get_landmarks(dirname=dirname, filename="{}".format(file_name), showimg=False, dim1=100, dim2=100)))
+    #         file_names.append(file_name)
 
-    # print people
-    print "\n"
-    avg_eyes_nose_ratio = 0
-    avg_nose_ratio = 0
-    avg_mouth_ratio = 0
-    avg_eyes_nose_angle_ratio = 0
-    avg_eyes_mouth_ratio = 0
-    for i, p in enumerate(people):
-        avg_eyes_nose_ratio += p['eyes_nose_ratio']
-        avg_nose_ratio += p['nose_ratio']
-        avg_mouth_ratio += p['mouth_ratio']
-        avg_eyes_nose_angle_ratio += p['eyes_nose_angle_ratio']
-        avg_eyes_mouth_ratio += p['eyes_mouth_ratio']
-        print("Person {} - {}".format(i+1, file_names[i]))
-        print("Eyes-Nose ratio diff:       {}".format(p['eyes_nose_ratio']-benchmarks[0][0]))
-        print("Nose ratio diff:            {}".format(p['nose_ratio']-benchmarks[1][0]))
-        print("Mouth ratio diff:           {}".format(p['mouth_ratio']-benchmarks[2][0]))
-        print("Eyes-Nose angle ratio diff: {}".format(p['eyes_nose_angle_ratio']-benchmarks[3][0]))
-        print("Eyes-Mouth ratio diff:      {}".format(p['eyes_mouth_ratio']-benchmarks[4][0]))
-        print("Rating:                     {}".format(rate_face(benchmarks, [
-            p['eyes_nose_ratio'],
-            p['nose_ratio'],
-            p['mouth_ratio'],
-            p['eyes_nose_angle_ratio'],
-            p['eyes_mouth_ratio']
-        ])))
-        print("\n")
+    # # print people
+    # print "\n"
+    # avg_eyes_nose_ratio = 0
+    # avg_nose_ratio = 0
+    # avg_mouth_ratio = 0
+    # avg_eyes_nose_angle_ratio = 0
+    # avg_eyes_mouth_ratio = 0
+    # for i, p in enumerate(people):
+    #     avg_eyes_nose_ratio += p['eyes_nose_ratio']
+    #     avg_nose_ratio += p['nose_ratio']
+    #     avg_mouth_ratio += p['mouth_ratio']
+    #     avg_eyes_nose_angle_ratio += p['eyes_nose_angle_ratio']
+    #     avg_eyes_mouth_ratio += p['eyes_mouth_ratio']
+    #     print("Person {} - {}".format(i+1, file_names[i]))
+    #     print("Eyes-Nose ratio diff:       {}".format(p['eyes_nose_ratio']-benchmarks[0][0]))
+    #     print("Nose ratio diff:            {}".format(p['nose_ratio']-benchmarks[1][0]))
+    #     print("Mouth ratio diff:           {}".format(p['mouth_ratio']-benchmarks[2][0]))
+    #     print("Eyes-Nose angle ratio diff: {}".format(p['eyes_nose_angle_ratio']-benchmarks[3][0]))
+    #     print("Eyes-Mouth ratio diff:      {}".format(p['eyes_mouth_ratio']-benchmarks[4][0]))
+    #     print("Rating:                     {}".format(rate_face(benchmarks, [
+    #         p['eyes_nose_ratio'],
+    #         p['nose_ratio'],
+    #         p['mouth_ratio'],
+    #         p['eyes_nose_angle_ratio'],
+    #         p['eyes_mouth_ratio']
+    #     ])))
+    #     print("\n")
 
-    avg_eyes_nose_ratio = avg_eyes_nose_ratio/len(people)
-    avg_nose_ratio = avg_nose_ratio/len(people)
-    avg_mouth_ratio = avg_mouth_ratio/len(people)
-    avg_eyes_nose_angle_ratio = avg_eyes_nose_angle_ratio/len(people)
-    avg_eyes_mouth_ratio = avg_eyes_mouth_ratio/len(people)
+    # avg_eyes_nose_ratio = avg_eyes_nose_ratio/len(people)
+    # avg_nose_ratio = avg_nose_ratio/len(people)
+    # avg_mouth_ratio = avg_mouth_ratio/len(people)
+    # avg_eyes_nose_angle_ratio = avg_eyes_nose_angle_ratio/len(people)
+    # avg_eyes_mouth_ratio = avg_eyes_mouth_ratio/len(people)
     
-    var_eyes_nose_ratio = 0
-    var_nose_ratio = 0
-    var_mouth_ratio = 0
-    var_eyes_nose_angle_ratio = 0
-    var_eyes_mouth_ratio = 0
-    for p in people:
-        var_eyes_nose_ratio += math.pow(p['eyes_nose_ratio'] - avg_eyes_nose_ratio, 2)
-        var_nose_ratio += math.pow(p['nose_ratio'] - avg_nose_ratio, 2)
-        var_mouth_ratio += math.pow(p['mouth_ratio'] - avg_mouth_ratio, 2)
-        var_eyes_nose_angle_ratio += math.pow(p['eyes_nose_angle_ratio'] - avg_eyes_nose_angle_ratio, 2)
-        var_eyes_mouth_ratio += math.pow(p['eyes_mouth_ratio'] - avg_eyes_mouth_ratio, 2)
+    # var_eyes_nose_ratio = 0
+    # var_nose_ratio = 0
+    # var_mouth_ratio = 0
+    # var_eyes_nose_angle_ratio = 0
+    # var_eyes_mouth_ratio = 0
+    # for p in people:
+    #     var_eyes_nose_ratio += math.pow(p['eyes_nose_ratio'] - avg_eyes_nose_ratio, 2)
+    #     var_nose_ratio += math.pow(p['nose_ratio'] - avg_nose_ratio, 2)
+    #     var_mouth_ratio += math.pow(p['mouth_ratio'] - avg_mouth_ratio, 2)
+    #     var_eyes_nose_angle_ratio += math.pow(p['eyes_nose_angle_ratio'] - avg_eyes_nose_angle_ratio, 2)
+    #     var_eyes_mouth_ratio += math.pow(p['eyes_mouth_ratio'] - avg_eyes_mouth_ratio, 2)
 
-    var_eyes_nose_ratio = var_eyes_nose_ratio/len(people)
-    var_nose_ratio = var_nose_ratio/len(people)
-    var_mouth_ratio = var_mouth_ratio/len(people)
-    var_eyes_nose_angle_ratio = var_eyes_nose_angle_ratio/len(people)
-    var_eyes_mouth_ratio = var_eyes_mouth_ratio/len(people)
+    # var_eyes_nose_ratio = var_eyes_nose_ratio/len(people)
+    # var_nose_ratio = var_nose_ratio/len(people)
+    # var_mouth_ratio = var_mouth_ratio/len(people)
+    # var_eyes_nose_angle_ratio = var_eyes_nose_angle_ratio/len(people)
+    # var_eyes_mouth_ratio = var_eyes_mouth_ratio/len(people)
 
     
-    print "Avg eyes ratio: {}".format(avg_eyes_nose_ratio)
-    print "SD eyes ratio: {}".format(math.sqrt(var_eyes_nose_ratio))
+    # print "Avg eyes ratio: {}".format(avg_eyes_nose_ratio)
+    # print "SD eyes ratio: {}".format(math.sqrt(var_eyes_nose_ratio))
     
-    print("\n")
-    print "Avg nose ratio: {}".format(avg_nose_ratio)
-    print "SD nose ratio: {}".format(math.sqrt(var_nose_ratio))
+    # print("\n")
+    # print "Avg nose ratio: {}".format(avg_nose_ratio)
+    # print "SD nose ratio: {}".format(math.sqrt(var_nose_ratio))
     
-    print("\n")
-    print "Avg mouth ratio: {}".format(avg_mouth_ratio)
-    print "SD mouth ratio: {}".format(math.sqrt(var_mouth_ratio))
-    print("\n")
-    print "Avg eyes-nose ratio: {}".format(avg_eyes_nose_angle_ratio)
-    print "SD eyes-nose ratio: {}".format(math.sqrt(var_eyes_nose_angle_ratio))
-    print("\n")
-    print "Avg eyes-mouth ratio: {}".format(avg_eyes_mouth_ratio)
-    print "SD eyes-mouth ratio: {}".format(math.sqrt(var_eyes_mouth_ratio))
-    print("\n")
+    # print("\n")
+    # print "Avg mouth ratio: {}".format(avg_mouth_ratio)
+    # print "SD mouth ratio: {}".format(math.sqrt(var_mouth_ratio))
+    # print("\n")
+    # print "Avg eyes-nose ratio: {}".format(avg_eyes_nose_angle_ratio)
+    # print "SD eyes-nose ratio: {}".format(math.sqrt(var_eyes_nose_angle_ratio))
+    # print("\n")
+    # print "Avg eyes-mouth ratio: {}".format(avg_eyes_mouth_ratio)
+    # print "SD eyes-mouth ratio: {}".format(math.sqrt(var_eyes_mouth_ratio))
+    # print("\n")
 
-    if write_to_file:
-        current_dir = os.path.dirname(__file__)
-        file_path = '../Data/{}'.format("benchmarks.txt")
-        file_rel_path = os.path.join(current_dir, file_path)
-        destfile = open(file_rel_path, 'w')
+    # if write_to_file:
+    #     current_dir = os.path.dirname(__file__)
+    #     file_path = '../Data/{}'.format("benchmarks.txt")
+    #     file_rel_path = os.path.join(current_dir, file_path)
+    #     destfile = open(file_rel_path, 'w')
 
-        destfile.write("{};{}\r\n".format(avg_eyes_nose_ratio, math.sqrt(var_eyes_nose_ratio)))
-        destfile.write("{};{}\r\n".format(avg_nose_ratio, math.sqrt(var_nose_ratio)))
-        destfile.write("{};{}\r\n".format(avg_mouth_ratio, math.sqrt(var_mouth_ratio)))
-        destfile.write("{};{}\r\n".format(avg_eyes_nose_angle_ratio, math.sqrt(var_eyes_nose_angle_ratio)))
-        destfile.write("{};{}\r\n".format(avg_eyes_mouth_ratio, math.sqrt(var_eyes_mouth_ratio)))
+    #     destfile.write("{};{}\r\n".format(avg_eyes_nose_ratio, math.sqrt(var_eyes_nose_ratio)))
+    #     destfile.write("{};{}\r\n".format(avg_nose_ratio, math.sqrt(var_nose_ratio)))
+    #     destfile.write("{};{}\r\n".format(avg_mouth_ratio, math.sqrt(var_mouth_ratio)))
+    #     destfile.write("{};{}\r\n".format(avg_eyes_nose_angle_ratio, math.sqrt(var_eyes_nose_angle_ratio)))
+    #     destfile.write("{};{}\r\n".format(avg_eyes_mouth_ratio, math.sqrt(var_eyes_mouth_ratio)))
 
-        destfile.close()
-        print("Done writing.")
+    #     destfile.close()
+    #     print("Done writing.")

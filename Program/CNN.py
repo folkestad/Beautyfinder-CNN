@@ -1,45 +1,19 @@
 
-# Copyright 2015 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-
-"""A deep MNIST classifier using convolutional layers.
-See extensive documentation at
-https://www.tensorflow.org/get_started/mnist/pros
-"""
-# Disable linter warnings to maintain consistency with tutorial.
-# pylint: disable=invalid-name
-# pylint: disable=g-bad-import-order
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
 import argparse
 import sys
-from image_handler import *
-from rating_handler import *
-from performance_measures import *
-
-from tensorflow.examples.tutorials.mnist import input_data
 
 import tensorflow as tf
 import numpy as np
 import random
+import math
 
-FLAGS = None
-
+from image_handler import *
+from rating_handler import *
+from performance_measures import *
 
 def cnn_model(X, img_height, img_width, img_channels, img_classes):
     """deepnn builds the graph for a deep net for classifying digits.
@@ -203,13 +177,56 @@ def split_to_training_and_test(data_set=[], label_set=[], n_samples=0):
 def main(_):
 
     #import data
-    all_images = get_all_resized_images(dim1=64,dim2=64, haar=False, dir_name="Processed_Many_datasets")
+    all_images = get_all_resized_images(dim1=32,dim2=32, haar=False, dir_name="Processed_FacesFront")
     print("No. images", len(all_images), "-> Dims e0: ", all_images[0].shape)
-    all_ratings = get_all_ratings(file_name='Many_datasets_ratings.txt')
+    all_ratings = get_all_ratings(file_name='Processed_FacesFront_Ratings.txt')
+
+    ratings_count = {}
+    for r in all_ratings:
+        if r not in ratings_count:
+            ratings_count[r] = 1
+        else:
+            ratings_count[r] += 1
+    print(ratings_count)
+    # sys.exit(0)
+
+    all_ratings = [
+        (lambda r: 2)(r)
+        if r > 8 else
+        (lambda r: 1)(r)
+        if r > 5 else
+        (lambda r: 0)(r)
+        for r in all_ratings
+    ]
+
+    ratings_count = {}
+    for r in all_ratings:
+        if r not in ratings_count:
+            ratings_count[r] = 1
+        else:
+            ratings_count[r] += 1
+    print(ratings_count)
+    # sys.exit(0)
+
     print("Rating e0: ", all_ratings[0])
-    one_hot_ratings = one_hot_encode(all_ratings, n_classes=10)
+    one_hot_ratings = one_hot_encode(all_ratings, n_classes=3)
     print("One Hot Rating e0: ", one_hot_ratings[0])
-    size_training_set = int(math.floor(len(all_images)*0.8))
+
+    # Generate new data
+    new_data = []
+    new_labels = []
+    for i in range(len(one_hot_ratings)):
+        if one_hot_ratings[i].tolist() == [1.0, 0.0, 0.0]:
+            vimg=cv2.flip(all_images[i],1)
+            new_data.append(vimg)
+            new_labels.append(np.array(one_hot_ratings[i], copy=True))
+    
+    all_images = all_images+new_data
+    labels = np.array(new_labels)
+    print(one_hot_ratings.shape, labels.shape, type(one_hot_ratings[0]), type(labels[0]))
+    one_hot_ratings = np.concatenate((one_hot_ratings, labels), axis=0)
+
+    size_training_set = int(math.floor(len(all_images)*0.9))
     size_test_set = len(all_images)-size_training_set
     print("Size training set -> {}, Size test set -> {}".format(size_training_set, size_test_set))
 
@@ -220,6 +237,14 @@ def main(_):
         n_samples=size_test_set
     )
 
+    # for i in range(len(training_X)):
+    #     if type(training_X[i]) != type(training_X[0]) or type(training_Y[i]) != type(training_X[0]):
+    #         print(type(training_X[i]), type(training_Y[i]))
+    
+    # for i in range(len(test_X)):
+    #     if type(test_X[i]) != type(training_X[0]) or type(test_Y[i]) != type(training_X[0]):
+    #         print(type(test_X[i]), type(test_Y[i]))
+    # sys.exit(0)
     # define sizes (used to create matrixes of correct sizes)
     img_height = training_X[0].shape[0]
     img_width = training_X[0].shape[1]
@@ -295,12 +320,13 @@ def main(_):
                     keep_prob: 1.0
                 })
                 batch_true_targets = np.argmax(training_Y[start:end], axis=1)
-                print('\tBatch %d - %d -> TRAINING accuracy %g' % (start, end, calc_accuracy(batch_pred_targets, batch_true_targets)))
+                print('\tBatch %d - %d -> TRAINING accuracy %g' % (start, end, get_accuracy(batch_pred_targets, batch_true_targets)))
 
                 pred_targets = np.hstack((pred_targets, np.array(batch_pred_targets)))
 
-            training_accuracy = calc_accuracy(pred_targets, true_targets)
+            training_accuracy = get_accuracy(pred_targets, true_targets)
             print('\tAvg Batch -> TRAINING accuracy %g' % (training_accuracy))
+            print("Precision, Recall, F-score, Support: {}".format(get_performance(pred_targets, true_targets)))
             print("{} ----- Classification Report TRAINING SET -----".format(i+1))
             print(get_classification_report(pred_targets, true_targets))
 

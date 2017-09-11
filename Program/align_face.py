@@ -15,7 +15,7 @@ def align_face(dirname="Beautiful", filename="test.jpg"):
 	fa = FaceAligner(predictor, desiredFaceWidth=256)
 
 	# load the input image, resize it, and convert it to grayscale
-	image = cv2.imread('../Data/{}/{}'.format(dirname, filename))
+	image = cv2.imread('../Data/Datasets/{}/{}'.format(dirname, filename))
 	image = imutils.resize(image, width=800)
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	

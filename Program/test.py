@@ -1,6 +1,6 @@
 import os
 
-src_dir = '../Data/Processed_Combined_datasets'
+src_dir = '../Data/Datasets/'
 files = os.walk(src_dir).next()[2]
 
 current_dir = os.path.dirname(__file__)

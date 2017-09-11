@@ -22,7 +22,7 @@ import numpy as np
 
 def get_all_ratings(file_name='renamed_cfd.csv'):
     current_dir = os.path.dirname(__file__)
-    file_path = '../Data/{}'.format(file_name)
+    file_path = '../Data/Ratings/{}'.format(file_name)
     file_rel_path = os.path.join(current_dir, file_path)
     rating_file = open(file_rel_path, 'r')
 
@@ -33,7 +33,7 @@ def get_all_ratings(file_name='renamed_cfd.csv'):
 
 def one_hot_encode(labels, n_classes=10):
     array = np.array([ int(l) for l in labels ])
-    one_hot = np.zeros((array.size, n_classes+1))
+    one_hot = np.zeros((array.size, n_classes))
     one_hot[np.arange(array.size), array] = 1
     return one_hot
 

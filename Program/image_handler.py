@@ -5,7 +5,7 @@ from HAAR import *
 
 def get_image(dir_name='Renamed_CFD', file_name='test.jpg'):
     current_dir = os.path.dirname(__file__)
-    file_path = '../Data/{}/{}'.format(dir_name, file_name)
+    file_path = '../Data/Datasets/{}/{}'.format(dir_name, file_name)
     file_rel_path = os.path.join(current_dir, file_path)
     img = opencv.imread(file_rel_path)
     return img
@@ -32,7 +32,7 @@ def get_all_images(dir_name="Renamed_CFD"):
 def get_all_resized_images(dim1=400, dim2=300, haar=False, dir_name="Renamed_CFD"):
     all_resized_images = []
     current_dir = os.path.dirname(__file__)
-    src_dir = '../Data/{}'.format(dir_name)
+    src_dir = '../Data/Datasets/{}'.format(dir_name)
     dir_rel_path = os.path.join(current_dir, src_dir)
     files = os.walk(dir_rel_path).next()[2]
     for file_name in files:
@@ -67,6 +67,7 @@ def change_names():
     for i,file_name in enumerate(names):
         # os.rename(file_name, dest_dir+'/'+file_name)
         os.rename(file_name, file_name.split("/")[-1].replace("N.jpg", "{}.jpg".format(i+1)))
+
 
 if __name__ == '__main__':
     # img = get_image('SCUT-FBP-2.jpg')
