@@ -7,7 +7,7 @@ from HAAR import *
 from align_face import *
 from performance_measures import *
 
-def classify_image_to_beauty_scale(dirname="Test", file_name="test.jpg", dim1=32, dim2=32):
+def classify_image_to_beauty_scale(dirname="Test", file_name="test.jpg", dim1=64, dim2=64):
 
     # img = get_image(file_name=file_name)
     # haar_img = haar_cascade(dir_name="Test", file_name=file_name)
@@ -27,10 +27,23 @@ def classify_image_to_beauty_scale(dirname="Test", file_name="test.jpg", dim1=32
             x: [resized_image],
             keep_prob: 1.0
         })
-        print("The person in the image is a {} on the beauty scale.".format(result+1))
+        result2 = sess.run(y_conv, feed_dict={
+            x: [resized_image],
+            keep_prob: 1.0
+        })
+        beauty = ""
+        if result[0] == 2:
+            beauty = "[Very Attractive]"
+        elif result[0] == 1:
+            beauty = "[Attractive]"
+        elif result[0] == 0:
+            beauty = "[Not Attractive]"
+        else:
+            print result
+        print("The person in the image is a {} ({}) on the beauty scale. --> {}".format(beauty, result, result2))
     
     current_dir = os.path.dirname(__file__)
-    file_path = '../Data/{}/{}'.format(dirname, file_name)
+    file_path = '../Data/Datasets/{}/{}'.format(dirname, file_name)
     file_rel_path = os.path.join(current_dir, file_path)
     img = cv2.imread(file_rel_path)
     print(type(img), img.shape)
@@ -47,9 +60,9 @@ def test(test_dir="Processed_Validation", test_labels="Validation_ratings.txt"):
     print true_labels
     true_labels = [
         (lambda r: 2)(r)
-        if r > 8 else
+        if r > 7 else
         (lambda r: 1)(r)
-        if r > 5 else
+        if r > 4 else
         (lambda r: 0)(r)
         for r in true_labels
     ]
@@ -63,17 +76,19 @@ def test(test_dir="Processed_Validation", test_labels="Validation_ratings.txt"):
     
     n_classes = 3
 
-    x = tf.placeholder(tf.float32, [None, 32, 32, 3])
-    y_conv, keep_prob = cnn_model(x, 32, 32, 3, n_classes)
+    img_dim = 64
+
+    x = tf.placeholder(tf.float32, [None,img_dim, img_dim, 3])
+    y_conv, keep_prob = cnn_model(x, img_dim, img_dim, 3, n_classes)
     predict_operation = tf.argmax(y_conv, axis=1)
 
     saver = tf.train.Saver()
     with tf.Session() as sess:
         saver.restore(sess, get_model_path())
-        for f in files:
+        for i,f in enumerate(files):
             if f != '.DS_Store':
                 aligned_image = cv2.imread(os.path.join(src_dir, f))
-                resized_image = resize_image(aligned_image, 32, 32)
+                resized_image = resize_image(aligned_image, img_dim, img_dim)
                 result = sess.run(predict_operation, feed_dict={
                     x: [resized_image],
                     keep_prob: 1.0
@@ -83,12 +98,26 @@ def test(test_dir="Processed_Validation", test_labels="Validation_ratings.txt"):
                     keep_prob: 1.0
                 })
                 predicted_labels.append(result)
-                print("The person in the image is a {} on the beauty scale. --> {}".format(result, result2))
-                show_image(aligned_image)
+                beauty = ""
+                if result[0] == 2:
+                    beauty = "[Very Attractive]"
+                elif result[0] == 1:
+                    beauty = "[Attractive]"
+                elif result[0] == 0:
+                    beauty = "[Not Attractive]"
+                else:
+                    print result
+                print("The person in the image is {} (P/T - {}/{}) on the beauty scale. --> {}".format(
+                    beauty, 
+                    result[0], 
+                    true_labels[i], 
+                    result2
+                ))
+                # show_image(aligned_image)
     
     print(get_classification_report(predicted_labels, true_labels))
-    print true_labels
-    print predicted_labels
+    print "True Labels --> ", true_labels
+    print "Pred Labels --> ", [p.tolist()[0] for p in predicted_labels]
 
 
 def get_model_path(file_name='model.ckpt'):

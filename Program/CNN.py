@@ -177,9 +177,9 @@ def split_to_training_and_test(data_set=[], label_set=[], n_samples=0):
 def main(_):
 
     #import data
-    all_images = get_all_resized_images(dim1=32,dim2=32, haar=False, dir_name="Processed_FacesFront")
+    all_images = get_all_resized_images(dim1=64,dim2=64, haar=False, dir_name="Processed_Combined_Datasets")
     print("No. images", len(all_images), "-> Dims e0: ", all_images[0].shape)
-    all_ratings = get_all_ratings(file_name='Processed_FacesFront_Ratings.txt')
+    all_ratings = get_all_ratings(file_name='Processed_Combined_Datasets_Ratings.txt')
 
     ratings_count = {}
     for r in all_ratings:
@@ -192,9 +192,9 @@ def main(_):
 
     all_ratings = [
         (lambda r: 2)(r)
-        if r > 8 else
+        if r > 7 else
         (lambda r: 1)(r)
-        if r > 5 else
+        if r > 4 else
         (lambda r: 0)(r)
         for r in all_ratings
     ]
@@ -212,14 +212,14 @@ def main(_):
     one_hot_ratings = one_hot_encode(all_ratings, n_classes=3)
     print("One Hot Rating e0: ", one_hot_ratings[0])
 
-    # Generate new data
+    # Generate new data by vertically flipping the images --> creating symmetric copies over the verical axis
     new_data = []
     new_labels = []
     for i in range(len(one_hot_ratings)):
-        if one_hot_ratings[i].tolist() == [1.0, 0.0, 0.0]:
-            vimg=cv2.flip(all_images[i],1)
-            new_data.append(vimg)
-            new_labels.append(np.array(one_hot_ratings[i], copy=True))
+        # if one_hot_ratings[i].tolist() == [1.0, 0.0, 0.0] or one_hot_ratings[i].tolist() == [0.0, 0.0, 1.0]:
+        vimg=cv2.flip(all_images[i],1)
+        new_data.append(vimg)
+        new_labels.append(np.array(one_hot_ratings[i], copy=True))
     
     all_images = all_images+new_data
     labels = np.array(new_labels)
@@ -272,7 +272,7 @@ def main(_):
     saver = tf.train.Saver()
 
     batch_size = 60
-    accuracy_treshold = 0.95
+    accuracy_treshold = 0.99
     print("\n")
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -292,7 +292,7 @@ def main(_):
                     keep_prob: 1.0
                 })
                 pred_targets = np.hstack((pred_targets, np.array(batch_pred_targets)))
-            
+            print(len(pred_targets), len(true_targets))
             test_accuracy = get_accuracy(pred_targets, true_targets)
 
             print("\n")
@@ -307,7 +307,7 @@ def main(_):
 
             pred_targets = np.array([])
             true_targets = np.argmax(training_Y, axis=1)
-            print(training_Y[0])
+            # print(training_Y[0])
             for start, end in zip(range(0, len(training_X), batch_size), range(batch_size, len(training_X) + batch_size, batch_size)):
                 train_step.run(feed_dict={
                     x: training_X[start:end], 
