@@ -7,7 +7,7 @@ from HAAR import *
 from align_face import *
 from performance_measures import *
 
-def classify_image_to_beauty_scale(dirname="Test", file_name="test.jpg", dim1=64, dim2=64):
+def classify_face(dirname="Test", file_name="test.jpg", dim1=64, dim2=64, showimage=True):
 
     # img = get_image(file_name=file_name)
     # haar_img = haar_cascade(dir_name="Test", file_name=file_name)
@@ -40,15 +40,22 @@ def classify_image_to_beauty_scale(dirname="Test", file_name="test.jpg", dim1=64
             beauty = "[Not Attractive]"
         else:
             print result
-        print("The person in the image is a {} ({}) on the beauty scale. --> {}".format(beauty, result, result2))
+        print("<{}>: {} (P - {}) --> {}".format(
+            file_name,
+            beauty, 
+            result[0], 
+            result2
+        ))
+        if showimage:
+            current_dir = os.path.dirname(__file__)
+            file_path = '../Data/Datasets/{}/{}'.format(dirname, file_name)
+            file_rel_path = os.path.join(current_dir, file_path)
+            img = cv2.imread(file_rel_path)
+            # print(type(img), img.shape)
+            show_image(img)
+            show_image(aligned_face)
     
-    current_dir = os.path.dirname(__file__)
-    file_path = '../Data/Datasets/{}/{}'.format(dirname, file_name)
-    file_rel_path = os.path.join(current_dir, file_path)
-    img = cv2.imread(file_rel_path)
-    print(type(img), img.shape)
-    show_image(img)
-    show_image(aligned_face)
+    
 
 def test(test_dir="Processed_Validation", test_labels="Validation_ratings.txt", showimage=False):
 
@@ -107,14 +114,17 @@ def test(test_dir="Processed_Validation", test_labels="Validation_ratings.txt", 
                     beauty = "[Not Attractive]"
                 else:
                     print result
-                print("The person in the image is {} (P/T - {}/{}) on the beauty scale. --> {}".format(
-                    beauty, 
-                    result[0], 
-                    true_labels[i], 
-                    result2
-                ))
-                if showimage:
-                    show_image(aligned_image)
+                if result[0] != true_labels[i]:
+                    print("{} - {}: {} (P/T - {}/{}) --> {}".format(
+                        i,
+                        f,
+                        beauty, 
+                        result[0], 
+                        true_labels[i], 
+                        result2
+                    ))
+                    if showimage:
+                        show_image(aligned_image)
     
     print(get_classification_report(predicted_labels, true_labels))
     print "True Labels --> ", true_labels
@@ -147,5 +157,5 @@ def resize_image(img, dim1, dim2):
     return resized_img
 
 if __name__ == '__main__':
-    # classify_image_to_beauty_scale(dirname="Presentation", file_name="donald.jpg", dim1=64, dim2=64)
-    test(test_dir="Processed_Combined_Datasets", test_labels="Processed_Combined_Datasets_Ratings.txt", showimage=False)
+    classify_face(dirname="Test", file_name="asian.jpg", dim1=64, dim2=64)
+    # test(test_dir="Processed_MR2", test_labels="Processed_MR2_Ratings.txt", showimage=True)
