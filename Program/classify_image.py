@@ -50,7 +50,7 @@ def classify_image_to_beauty_scale(dirname="Test", file_name="test.jpg", dim1=64
     show_image(img)
     show_image(aligned_face)
 
-def test(test_dir="Processed_Validation", test_labels="Validation_ratings.txt"):
+def test(test_dir="Processed_Validation", test_labels="Validation_ratings.txt", showimage=False):
 
     current_dir = os.path.dirname(__file__)
     file_path = '../Data/Ratings/{}'.format(test_labels)
@@ -113,7 +113,8 @@ def test(test_dir="Processed_Validation", test_labels="Validation_ratings.txt"):
                     true_labels[i], 
                     result2
                 ))
-                # show_image(aligned_image)
+                if showimage:
+                    show_image(aligned_image)
     
     print(get_classification_report(predicted_labels, true_labels))
     print "True Labels --> ", true_labels
@@ -147,4 +148,4 @@ def resize_image(img, dim1, dim2):
 
 if __name__ == '__main__':
     # classify_image_to_beauty_scale(dirname="Presentation", file_name="donald.jpg", dim1=64, dim2=64)
-    test()
+    test(test_dir="Processed_Combined_Datasets", test_labels="Processed_Combined_Datasets_Ratings.txt", showimage=False)

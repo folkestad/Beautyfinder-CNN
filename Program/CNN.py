@@ -216,10 +216,10 @@ def main(_):
     new_data = []
     new_labels = []
     for i in range(len(one_hot_ratings)):
-        # if one_hot_ratings[i].tolist() == [1.0, 0.0, 0.0] or one_hot_ratings[i].tolist() == [0.0, 0.0, 1.0]:
-        vimg=cv2.flip(all_images[i],1)
-        new_data.append(vimg)
-        new_labels.append(np.array(one_hot_ratings[i], copy=True))
+        if one_hot_ratings[i].tolist() == [1.0, 0.0, 0.0] or one_hot_ratings[i].tolist() == [0.0, 0.0, 1.0]:
+            vimg=cv2.flip(all_images[i],1)
+            new_data.append(vimg)
+            new_labels.append(np.array(one_hot_ratings[i], copy=True))
     
     all_images = all_images+new_data
     labels = np.array(new_labels)
@@ -229,7 +229,7 @@ def main(_):
     size_training_set = int(math.floor(len(all_images)*0.9))
     size_test_set = len(all_images)-size_training_set
     print("Size training set -> {}, Size test set -> {}".format(size_training_set, size_test_set))
-
+        
     # 80% training
     training_X, training_Y, test_X, test_Y = split_to_training_and_test(
         data_set=all_images, 
@@ -281,9 +281,6 @@ def main(_):
         test_accuracy = 0
         for i in range(500):
 
-            if done == True:
-                break
-
             pred_targets = np.array([])
             true_targets = np.argmax(test_Y, axis=1)
             for start, end in zip(range(0, len(test_X), batch_size), range(batch_size, len(test_X) + batch_size, batch_size)):
@@ -303,6 +300,9 @@ def main(_):
             
             if test_accuracy > accuracy_treshold:
                 print("Finished training by exceeding accuracy treshold {}".format(accuracy_treshold))
+                break
+
+            if done == True:
                 break
 
             pred_targets = np.array([])
@@ -332,7 +332,7 @@ def main(_):
 
             if training_accuracy > accuracy_treshold:
                 print("The average accuracy exceeded the accuracy threshold {}".format(accuracy_treshold))
-                break
+                done = True
 
         save_model(saver, sess)
         print("Model saved.")
