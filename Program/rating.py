@@ -133,13 +133,13 @@ if __name__ == '__main__':
     benchmarks = [ [float(b.replace("\r\n", "").split(";")[0]), float(b.replace("\r\n", "").split(";")[1])] for b in benchmarks_file ]
     benchmarks_file.close()
     
-    src_dir = '../Data/Datasets/{}'.format("MR2")
+    src_dir = '../Data/Datasets/{}'.format("SCUT-FBP")
     files = os.walk(src_dir).next()[2]
     file_names_ratings = []
     image_counter = 1
 
     current_dir = os.path.dirname(__file__)
-    file_path = '../Data/Ratings/{}'.format("Processed_MR2_Ratings.txt")
+    file_path = '../Data/Ratings/{}'.format("Processed_SCUT-FBP_Ratings.txt")
     file_rel_path = os.path.join(current_dir, file_path)
     rating_file = open(file_rel_path, 'w')
     
@@ -148,8 +148,8 @@ if __name__ == '__main__':
             new_filename = "{}.jpg".format(image_counter)
             try:
                 p = calc_ratios(get_landmarks(
-                    dirname="MR2",
-                    dest_dir="Processed_MR2",
+                    dirname="SCUT-FBP",
+                    dest_dir="Processed_SCUT-FBP",
                     filename="{}".format(file_name), 
                     new_filename=new_filename,
                     showimg=False, 

@@ -52,7 +52,7 @@ def classify_face(dirname="Test", file_name="test.jpg", dim1=64, dim2=64, showim
             file_rel_path = os.path.join(current_dir, file_path)
             img = cv2.imread(file_rel_path)
             # print(type(img), img.shape)
-            show_image(img)
+            # show_image(img)
             show_image(aligned_face)
     
     
@@ -157,5 +157,5 @@ def resize_image(img, dim1, dim2):
     return resized_img
 
 if __name__ == '__main__':
-    classify_face(dirname="Test", file_name="asian.jpg", dim1=64, dim2=64)
-    # test(test_dir="Processed_MR2", test_labels="Processed_MR2_Ratings.txt", showimage=True)
+    # classify_face(dirname="Presentation", file_name="donald.jpg", dim1=64, dim2=64)
+    test(test_dir="Processed_Validation", test_labels="Validation_Ratings.txt", showimage=True)

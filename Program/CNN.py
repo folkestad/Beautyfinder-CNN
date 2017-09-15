@@ -177,9 +177,9 @@ def split_to_training_and_test(data_set=[], label_set=[], n_samples=0):
 def main(_):
 
     #import data
-    all_images = get_all_resized_images(dim1=64,dim2=64, haar=False, dir_name="Processed_Combined_Datasets")
+    all_images = get_all_resized_images(dim1=64,dim2=64, haar=False, dir_name="Processed_Combined_Dataset")
     print("No. images", len(all_images), "-> Dims e0: ", all_images[0].shape)
-    all_ratings = get_all_ratings(file_name='Processed_Combined_Datasets_Ratings.txt')
+    all_ratings = get_all_ratings(file_name='Processed_Combined_Dataset_Ratings.txt')
 
     ratings_count = {}
     for r in all_ratings:
